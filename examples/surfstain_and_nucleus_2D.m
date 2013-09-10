@@ -53,8 +53,8 @@ imsegm = imfilter(imsegm1,filt) - imfilter(imnucl,filt);
 [cellbw,wat,imsegmout,minima,minimacell,info] = ...
     cellsegm.segmsurf(imsegm,5,100,'imnucleus',imnucl,'prm',prm);
 
-show(imsegm,1);title('Surface stain');axis off;
-show(imnucl,2);title('Nucleus stain');axis off;
-show(minima,3);title('Markers');axis off;
-show(wat,4);title('Watershed image');axis off;
-show(cellbw,5);title('Cell segmentation');axis off;
+cellsegm.show(imsegm,1);title('Surface stain');axis off;
+cellsegm.show(imnucl,2);title('Nucleus stain');axis off;
+cellsegm.show(minima,3);title('Markers');axis off;
+cellsegm.show(wat,4);title('Watershed image');axis off;
+cellsegm.show(cellbw,5);title('Cell segmentation');axis off;

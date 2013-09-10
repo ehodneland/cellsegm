@@ -1,3 +1,11 @@
+% SHOW Drawing images using colormap gray and imagesc function.
+%
+%   SHOW(IM) is drawing the image in IM at the middle plane
+%
+%   SHOW(IM,FIGNUM) is drawing the image in IM at the middle plane in the
+%   figure FIGNUM
+%
+%
 %   =======================================================================================
 %   Copyright (C) 2013  Erlend Hodneland
 %   Email: erlend.hodneland@biomed.uib.no 
@@ -15,25 +23,24 @@
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
+%
+function [] = show(varargin)
 
-clear all;
-close all;
+global inactiv    
 
-load ../data/surfstain_3D.mat;
-imsegm = imsegm(150:400,50:300,15);
-
-% smoothing with coherence enhancing diffusion
-imsm1 = cellsegm.smoothim(imsegm,'ced');
-
-% smoothing with directional coherence enhancing diffusion
-imsm2 = cellsegm.smoothim(imsegm,'dirced');
-
-% smoothing with Gaussian smoothing
-imsm3 = cellsegm.smoothim(imsegm,'gaussian');
-
-cellsegm.show(imsegm,1);axis off;axis image;title('Raw image');
-cellsegm.show(imsm1,2);axis off;axis image;title('Coherence enhancing diffusion');
-cellsegm.show(imsm2,3);axis off;axis image;title('Directional coherence enhancing diffusion');
-cellsegm.show(imsm3,4);axis off;axis image;title('Gaussian smoothing');
-
-
+if nargin == 1    
+    I = varargin{1};
+    [M N O] = size(I);
+    middle = round(O/2);
+    if isempty(inactiv)
+        figure;colormap(gray);imagesc(I(:,:,middle));axis image;drawnow
+    end;
+elseif nargin == 2
+    I = varargin{1};
+    [M N O] = size(I);    
+    number = varargin{2};
+    middle = round(O/2);
+    if isempty(inactiv)    
+        figure(number);colormap(gray);imagesc(I(:,:,middle));axis image;drawnow
+    end;
+end;%if    

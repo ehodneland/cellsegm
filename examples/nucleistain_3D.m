@@ -32,13 +32,13 @@ prm.method = 'thrs';
 prm.thrs.th = 1.4;
 [cellbw1,wat,imsegmout,prmout] = cellsegm.segmct(imsegm,3,30,'prm',prm);
 
-show(imsegm(:,:,plane),1);
+cellsegm.show(imsegm(:,:,plane),1);
 title('Hoechst staining');axis off;
-show(cellbw1(:,:,plane),2);
+cellsegm.show(cellbw1(:,:,plane),2);
 title('Cell segmentation, iterative thresholding, without splitting');axis off;
 
 % Add splitting of cells. Can do this separately to have better control
 prm.splitth = 2;
 cellbw2 = cellsegm.splitcells(cellbw1,prm.splitth,plane);
-show(cellbw2(:,:,plane),2);
+cellsegm.show(cellbw2(:,:,plane),2);
 title('Cell segmentation, iterative thresholding, with splitting');axis off;

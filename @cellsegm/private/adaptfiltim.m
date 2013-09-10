@@ -1,12 +1,33 @@
-% ADAPTFILTIM(IM,RAD,D) Adaptive filtering on IM, RAD defines the filter size 
-% of average filter, try 10. D is
-% the additive value above background value, can be set to 0.02-0.2,  
-% Image should be scaled to [0 1] before entering the algorithm.
-% ADAPTFILT(IM,RAD,D,HX,HZ) includes the pixel resolution also
+%   ADAPTFILTIdim(1) Performs adaptive filtering
+%
+%   ADAPTFILTIdim(1)(Idim(1),RAD,D) Adaptive filtering on Idim(1), RAD defines the filter size 
+%   of average filter. D is 
+%   the additive value above background value, can be set to 0.02-0.2,  
+%   Image should be scaled to [0 1] before entering the algorithm.
+%
+%   ADAPTFILT(Idim(1),RAD,D,H) includes the pixel size as well.
 % 
-% Ex adaptfiltim(im,30,0.05);
+%   Ex adaptfiltim(im,30,0.05);
 % 
-function [thIm] = adaptfiltim(varargin)
+%   =======================================================================================
+%   Copyright (C) 2013  Erlend Hodneland
+%   Email: erlend.hodneland@biomed.uib.no 
+% 
+%   This program is free software: you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation, either version 3 of the License, or
+%   (at your option) any later version.
+% 
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+% 
+%   You should have received a copy of the GNU General Public License
+%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%   =======================================================================================
+%
+function [thim] = adaptfiltim(varargin)
 
 im = varargin{1};
 rad = varargin{2};
@@ -18,35 +39,27 @@ elseif nargin == 4
 else
     error('Wrong number of inputs to ADAPTFILT');
 end;
-% im,rad,d,hx,hz
 
 im = scale(im);
 hx = h(1);
 hy = h(2);
 hz = h(3);
 
-[M N O] = size(im);
-
+dim = size(im);
+if numel(dim) == 2
+    dim = [dim 1];
+end;
 % z dimension based on the resolution
 radz = floor(rad*(hx/hz));
 
 % make threshold image
-if O == 1
+if dim(3) == 1
     th = imfilter(im,fspecial('average',rad),'replicate');
 else 
     g = 1/(rad*rad*radz)*ones(rad,rad,radz); 
     th = imfilter(im,g,'replicate');
 end
     
-% % smooth image
-% p = 3;
-% if O == 1
-%     th = imfilter(im,fspecial('average',p),'replicate');
-% else    
-%     g = 1/(p*p*p)*ones(p,p,p);
-%     th = imfilter(im,g,'replicate');
-% end
-
 
 % multiply thresholds above image mean values
 th = th + d;
@@ -56,13 +69,5 @@ th = th + d;
 %
 
 % threshold image at different scales to get ridges
-thIm = gt(im,th);
-
-% showall(th,im,thIm)
-
-test = 0;
-if test ==1
-    show(thIm,2)
-    %pause
-end;
+thim = gt(im,th);
 

@@ -154,7 +154,6 @@ elseif isequal(method,'dirced')
 elseif isequal(method,'eed')
     msg = 'Using edge enhancing diffusion';
     disp(msg);
-    
     if prm.planewise
         for i = 1 : dim(3)
             im(:,:,i) = edgeenhdiff(im(:,:,i),prm.eed.dt,prm.eed.maxniter,prm.eed.kappa);

@@ -34,7 +34,7 @@ prm.classifycells.convexperim = 0.50;
 [cellbw,wat,imsegmout,minima,minimacell,info] = ...
     cellsegm.segmsurf(imsegm,20,100,'prm',prm);
 
-show(imsegm,1);title('Raw image');axis off;
-show(minima,2);title('Markers');axis off;
-show(wat,3);title('Watershed image');axis off;
-show(cellbw,4);title('Cell segmentation');axis off;
+cellsegm.show(imsegm,1);title('Raw image');axis off;
+cellsegm.show(minima,2);title('Markers');axis off;
+cellsegm.show(wat,3);title('Watershed image');axis off;
+cellsegm.show(cellbw,4);title('Cell segmentation');axis off;

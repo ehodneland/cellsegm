@@ -174,7 +174,7 @@ if ~isempty(prmfile)
     end;
 
     % merge the structs by overriding the existing values    
-    prm = mergeinputpar(prm,prmin);
+    prm = mergestruct(prm,prmin);
 
 end;
 

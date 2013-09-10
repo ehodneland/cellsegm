@@ -1,19 +1,40 @@
-% EED Edge enhancing diffusion
-% NB IF you have larger image values [0 255] then use larger k = [1 10]!!
-% 
-% Ex: b = edgeenhdiff(im,0.2,100,10);show(im,1);
+% EDGEENHDIFF Edge enhancing diffusion
 %
-% Algorithms for non-linear diffusion, MATLAB in a literate programming
-% style, Section 4.1
-% Rein van den Boomgard
+%   EDGEENHDIFF(U,DT,MAXNITER,KAPPA) Performing edge enhancing diffusion 
+%   of image U using time step DT, MAXNITER number of iterations, and 
+%   conductivity KAPPA
+% 
+%   Ex: b = edgeenhdiff(im,0.2,100,10);show(im,1);
+%
+%   Literature:
+%   Algorithms for non-linear diffusion, MATLAB in a literate programming
+%   style, Section 4.1
+%   Rein van den Boomgard
+%
+%
+%   =======================================================================================
+%   Copyright (C) 2013  Erlend Hodneland
+%   Email: erlend.hodneland@biomed.uib.no 
+%
+%   This program is free software: you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation, either version 3 of the License, or
+%   (at your option) any later version.
+% 
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+% 
+%   You should have received a copy of the GNU General Public License
+%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%   =======================================================================================
 %
 function [u] = edgeenhdiff( u, dt, maxniter, kappa)
-% eed: edge enhancing diffusion
 
 prm.vis = 0;
 prm.visit = 10;
 
-% imini = u;
 
 % 
 % NB Do not filter the original image!!!
@@ -154,8 +175,6 @@ hz = prm.hz;
 % NB!!!!
 % Use central differences for the mixed terms!!!!
 
-% showall(D.d11,D.d21,D.d31,D.d12,D.d22,D.d32,D.d13,D.d23,D.d33)
-
 % original scheme
 p1 = d11.*(transim(L,1,0,0)-L)/hx;
 p2 = d12.*(transim(L,0,1,0)-transim(L,0,-1,0))/(2*hy);
@@ -192,9 +211,6 @@ hy = prm.hy;
 hz = prm.hz;
 
 % iterate
-% uscale = 1;
-% filt = fspecial('gaussian',9,5);
-% filt = fspecial('gaussian',5,3);
 filt = fspecial('gaussian',3,1);
 for i = 1 : niter
 
@@ -203,9 +219,6 @@ for i = 1 : niter
     Rx = imfilter(Rx,filt,'replicate');
     Ry = imfilter(Ry,filt,'replicate');
     
-%     Rx = gd( u, uscale, 1, 0 );
-%     Ry = gd( u, uscale, 0, 1 );
-
     % for diffusion tensor
     Rw2 = Rx.^2 + Ry.^2;
     Rw = sqrt(Rw2);

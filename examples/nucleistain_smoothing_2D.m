@@ -27,5 +27,5 @@ prm.eed.kappa = 10;
 prm.eed.maxniter = 300;
 imsm = cellsegm.smoothim(imsegm,'eed','prm',prm);
 
-show(imsegm,1);axis off;axis image;title('Raw image');
-show(imsm,4);axis off;axis image;title('Edge enhancing diffusion');
+cellsegm.show(imsegm,1);axis off;axis image;title('Raw image');
+cellsegm.show(imsm,4);axis off;axis image;title('Edge enhancing diffusion');

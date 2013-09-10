@@ -21,6 +21,7 @@
 classdef cellsegm
        
    methods (Static)
+      % main functions
       prop = cellprop(im,wat,cellv,propname,h,meanintbck);
       cellsegmentation(varargin);
       [minvol,minvolvox,maxvol,maxvolvox] = cellsize(minvol,maxvol,h,just,O);
@@ -35,7 +36,7 @@ classdef cellsegm
       [faser] = mergefragments(faser,im,thint,thconv,optlog,optint);
       [faser] = resegmentwat(faser,im);
       [v] = ridgeenhhessian(varargin);
+      show(im,fignum);
    end 
-   
       
 end

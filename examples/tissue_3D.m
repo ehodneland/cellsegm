@@ -39,7 +39,7 @@ prm.smoothim.method = 'dirced';
 prm.segmstart = 1;
 
 % use gpu if Jacket is installed, otherwise set to 0
-prm.gpu = 1;
+prm.gpu = 0;
 
 % classification thresholds
 prm.segmsurf.classifycells.convexperim = 0.15;

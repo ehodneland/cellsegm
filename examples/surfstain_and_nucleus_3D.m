@@ -47,8 +47,8 @@ imsegm = smooth3(imsegm) - smooth3(imnucl);
     cellsegm.segmsurf(imsegm,3,100,'imnucleus',imnucl,'prm',prm);
 
 plane = 6;
-show(imsegm(:,:,plane),1);title('Surface stain');axis off;
-show(imnucl(:,:,plane),2);title('Nucleus stain');axis off;
-show(minima(:,:,plane),3);title('Markers');axis off;
-show(wat(:,:,plane),4);title('Watershed image');axis off;
-show(cellbw(:,:,plane),5);title('Cell segmentation');axis off;
+cellsegm.show(imsegm(:,:,plane),1);title('Surface stain');axis off;
+cellsegm.show(imnucl(:,:,plane),2);title('Nucleus stain');axis off;
+cellsegm.show(minima(:,:,plane),3);title('Markers');axis off;
+cellsegm.show(wat(:,:,plane),4);title('Watershed image');axis off;
+cellsegm.show(cellbw(:,:,plane),5);title('Cell segmentation');axis off;

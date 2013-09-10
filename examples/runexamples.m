@@ -29,7 +29,7 @@ if isequal(option,'all')
         if i < 10
             msg = ['Option ' int2str(i) ' done, press any key'];
             disp(msg);
-            pause
+%             pause
         end;
     end;
 else
@@ -40,33 +40,27 @@ end;
 function [] = run(option)
 
 if isequal(option,1)
-    surfstain_smoothing_2D    
-    
+    surfstain_smoothing_2D        
 elseif isequal(option,2)  
-    nucleistain_2D                           
-    
+    nucleistain_2D                               
 elseif isequal(option,3)
-    nucleistain_3D                             
-    
+    nucleistain_3D                                 
 elseif isequal(option,4)
-    nucleistain_smoothing_2D                   
-    
+    nucleistain_smoothing_2D                       
 elseif isequal(option,5)
-    surfstain_2D                               
-    
+    surfstain_2D                                   
 elseif isequal(option,6)
-    surfstain_3D                               
-    
+    surfstain_3D                                   
 elseif isequal(option,7)
-    surfstain_and_manual_3D                    
-    
+    surfstain_and_manual_3D                        
 elseif isequal(option,8)
-    surfstain_and_nucleus_2D                   
-    
+    surfstain_and_nucleus_2D                       
 elseif isequal(option,9)
-    surfstain_and_nucleus_3D                   
-    
+    surfstain_and_nucleus_3D                       
 elseif isequal(option,10)
-    surfstain_and_nucleus_cellsegmentation_3D  
-        
+    surfstain_and_nucleus_cellsegmentation_3D      
+elseif isequal(option,11)
+    tissue_3D;        
 end;
+
+

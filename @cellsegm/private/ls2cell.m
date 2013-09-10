@@ -1,7 +1,10 @@
-% PRINTMSG Print message to screen
-% 
-%   PRINTMSG(MSG,FLAG) prints the message in MSG with uppercase if FLAG == 1,
-%   else lowercase
+% LS2CELL Write folder and file names to a cell array
+%
+%   LS2CELL(OPTION,PATTERN) writes file or folders matching PATTERN to 
+%   a cell array. OPTION = 1 writes file names, OPTION = 2 writes folder 
+%   names matching the pattern.
+%   Returning a cell array with the strings as cells.
+%
 %
 %   =======================================================================================
 %   Copyright (C) 2013  Erlend Hodneland
@@ -21,24 +24,31 @@
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
 %
-function [] = printmsg(varargin)
+function [s] = ls2cell(option,pattern)
 
-msg = varargin{1};
 
-flag = 0;
-if nargin == 2
-    flag = varargin{2};
-end;
-if flag == 1
-    msg = upper(msg);
+d = dir(pattern);
+
+[A B C] = fileparts(pattern);
+if ~isempty(A)
+    for i = 1 : numel(d)
+        d(i).name = [A '/' d(i).name];
+    end;
 end;
 
-level = 1;
-if nargin == 3
-    level = varargin{3};
+c = 1;
+s = '';
+for i = 1 : length(d)
+    a = d(i).name;    
+    if option == 1
+        if exist(a,'file') == 2
+            s{c,1} = a;
+            c = c + 1;
+        end;
+    elseif option == 2
+        if exist(a,'dir') == 7
+            s{c,1} = a;
+            c = c + 1;
+        end;
+    end;    
 end;
-    
-for i = 1 : level-1
-    msg = ['    ' msg];
-end;
-disp(sprintf('%s',msg))

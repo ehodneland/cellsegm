@@ -1,20 +1,35 @@
-% STRUCTSMOOTH Structural smoothing of image
-% STRSMOOTH(IM,D,HX,HY,HZ) Smoothes the image IM using a square filter with
-% diameter D and stepsize STEPS which must be a 1x3 array
-% 
-% Also possible to run with spedifying the dimensio of the filter. This is
-% important when swithching between PC12 cells nad NRK cells
-% STRSMOOTH(IM,D,HX,HY,HZ,[DIMXY DIMZ STDEV]) DIMXY and DIMZ specifies the
-% dimension of the filter to smooth the image by a gaussian convolution.
-% STDEV is the standarad deviation in the Gaussian
+% DIRCOHENH Structural smoothing of image
 %
-% For NRK cells, set to DIMXY = 7, DIMZ = 3, STDEV = 5;
-%
-% Ex: filtim = structsmooth(im,13,1,1,3);
+%   DIRCOHENH(IM,D,H) Smoothes the image IM using a square filter with
+%   diameter D and voxel size H which must be a 1x3 array
 % 
-% High-throughput Anaysis of Multispectral Imagse of Breast Cancer Tisue.
-% Umesh Adiga et al. IEEE Transactions on image processing, Vol 15, No 8,
-% August 2006
+%   DIRCOHENH(IM,D,H,GPU) specifies whether to use GPU (GPU=1) (by Jacket) or 
+%   not (GPU=0)
+%
+%   Ex: filtim = structsmooth(im,13,[1 1 3]);
+% 
+%   Literature:
+%   High-throughput Anaysis of Multispectral Imagse of Breast Cancer Tisue.
+%   Umesh Adiga et al. IEEE Transactions on image processing, Vol 15, No 8,
+%   August 2006
+%
+%   =======================================================================================
+%   Copyright (C) 2013  Erlend Hodneland
+%   Email: erlend.hodneland@biomed.uib.no 
+%
+%   This program is free software: you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation, either version 3 of the License, or
+%   (at your option) any later version.
+% 
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+% 
+%   You should have received a copy of the GNU General Public License
+%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%   =======================================================================================
 %
 function [filtim] = dircohenh(varargin)
 
@@ -33,15 +48,6 @@ if numel(dim) == 2
     dim = [dim 1];
 end;
 
-% gpu = 1;
-
-% if gpu
-%     msg = ['Using GPU code'];
-%     disp(msg);
-% else
-%     msg = ['Using CPU code'];
-%     disp(msg);    
-% end;
 % number of elements to remove before one takes the Olympic average. Set to
 % 1-->3
 numremele = 2;
@@ -70,10 +76,8 @@ deg3D = [deg2D; ...
          0 0];
      
 if dim(3) == 1
-%     disp('Using 2D directional coherence enhancement filter')
     deg = deg2D;
 else
-%     disp('Using 3D directional coherence enhancement filter')
     deg = deg3D;
 end;
 

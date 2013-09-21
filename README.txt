@@ -1,6 +1,6 @@
-%==============================================================================
-% W E L C O M E   T O   CELLSEGM
-% Cell segmentation package
+%
+%   W E L C O M E   T O   CELLSEGM
+%   Cell segmentation package
 % 
 %   =======================================================================================
 %   Copyright (C) 2013  Erlend Hodneland

@@ -292,6 +292,9 @@ function [minimabck] = getbackground(imsegm,minimacell,prm)
 
 
 vis = 0;
+% save test
+
+dim = size(imsegm);
 
 % find background
 imhere = scale(imsegm);    
@@ -322,6 +325,16 @@ minimabck = imclose(minimabck,se);
 load ball2;se = getball(ball,2,1);
 minimabck = imerode(minimabck,se);
 
+% % remove maximum projection of the nucleus markers
+% m = maxprojimage(minimacell);
+% load ball4;se = getball(ball,4,1);
+% m = imdilate(m,se);
+% for i = 1 : dim(3)
+%     ima = minimabck(:,:,i);
+%     ima(m == 1) = 0;    
+%     minimabck(:,:,i) = ima;
+% end;
+
 % open to disconnect to cells
 load ball4;se = getball(ball,4,1);
 minimabck = imopen(minimabck,se);
@@ -332,8 +345,12 @@ if vis
 end;
 
 % remove small background minima
-% was at 2
-minimabck = bwareaopen(minimabck,round(prm.minvolvox/8));
+% no less than maximum cell volume in each background area
+th = round(10*prm.maxvolvox/dim(3));
+for i = 1 : dim(3)
+    minimabck(:,:,i) = bwareaopen(minimabck(:,:,i),th);
+end;
+% minimabck = bwareaopen(minimabck,round(prm.minvolvox/8));
 
 if vis
     'After remove small'
@@ -341,20 +358,23 @@ if vis
 end;
 
 % remove all markers with overlap to nucleus markers (minimacell)
-[faser,L] = bwlabeln(minimabck);
-overlap = faser(minimacell == 1);
+% [faser,L] = bwlabeln(minimabck);
+% overlap = faser(minimacell == 1);
 % overlap = minimabck .* minimacell;
-% load ball10;se = getball(ball,10,3);
-% dilminimacell = imdilate(minimacell,se);
-% minimabck(dilminimacell == 1) = 0;
+r = prm.h(1)/prm.h(3);
+dxy = 10;
+dz = round(dxy*r);
+load ball10;se = getball(ball,dxy,dz);
+dilminimacell = imdilate(minimacell,se);
+minimabck(dilminimacell == 1) = 0;
 
-% took this away since it removed all background if there is only one voxel
-% overlap!
-overlap(overlap == 0) = [];
-overlap = unique(overlap);
-for i = 1 : numel(overlap)
-    minimabck(faser == overlap(i)) = 0;
-end;
+% % took this away since it removed all background if there is only one voxel
+% % overlap!
+% overlap(overlap == 0) = [];
+% overlap = unique(overlap);
+% for i = 1 : numel(overlap)
+%     minimabck(faser == overlap(i)) = 0;
+% end;
 
 if vis
     'After remove overlap'
@@ -362,19 +382,20 @@ if vis
 end;
 
 
-% minimabck = imfill(minimabck,'holes');
-minimabck = fillholes(minimabck,0,prm.minvolvox,4);
-load ball2;se = getball(ball,2,1);
-minimabck = imopen(minimabck,se);    
-minimabck = imclose(minimabck,se);  
+% % minimabck = imfill(minimabck,'holes');
+% minimabck = fillholes(minimabck,0,prm.minvolvox,4);
+% load ball2;se = getball(ball,2,1);
+% minimabck = imopen(minimabck,se);    
+% minimabck = imclose(minimabck,se);  
+% 
+% if vis
+%     'After fill,open.close'
+%     showall(imhere,minimabck)
+% end;
 
-if vis
-    'After fill,open.close'
-    showall(imhere,minimabck)
-end;
 
-
-% remove small background minima
+% remove small background minima, if some new small ones were created in
+% previous steps
 minimabck = bwareaopen(minimabck,round(prm.minvolvox/2));
 
 if vis

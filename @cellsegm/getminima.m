@@ -318,6 +318,10 @@ end;
 load ball1;se = getball(ball,1,1);
 minimabck = imclose(minimabck,se);
 
+% erode to remove from nucleus markers to avoid overlap
+load ball2;se = getball(ball,2,1);
+minimabck = imerode(minimabck,se);
+
 % open to disconnect to cells
 load ball4;se = getball(ball,4,1);
 minimabck = imopen(minimabck,se);
@@ -336,22 +340,21 @@ if vis
     showall(imhere,minimabck,minimacell)
 end;
 
-% remove the overlap to cell markers
-% [faser,L] = bwlabeln(minimabck);
-% overlap = faser .* minimacell;
+% remove all markers with overlap to nucleus markers (minimacell)
+[faser,L] = bwlabeln(minimabck);
+overlap = faser(minimacell == 1);
 % overlap = minimabck .* minimacell;
-load ball10;se = getball(ball,10,3);
-dilminimacell = imdilate(minimacell,se);
-minimabck(dilminimacell == 1) = 0;
+% load ball10;se = getball(ball,10,3);
+% dilminimacell = imdilate(minimacell,se);
+% minimabck(dilminimacell == 1) = 0;
 
 % took this away since it removed all background if there is only one voxel
 % overlap!
-% overlap = overlap(:);
-% overlap(overlap == 0) = [];
-% overlap = unique(overlap);
-% for i = 1 : numel(overlap)
-%     minimabck(faser == overlap(i)) = 0;
-% end;
+overlap(overlap == 0) = [];
+overlap = unique(overlap);
+for i = 1 : numel(overlap)
+    minimabck(faser == overlap(i)) = 0;
+end;
 
 if vis
     'After remove overlap'

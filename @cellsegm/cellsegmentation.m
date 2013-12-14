@@ -64,7 +64,7 @@ function [] = cellsegmentation(varargin)
 %   dimension as the segmentation image. There must be two variables, MINIMA 
 %   with all markers and MINIMACELL with only cell markers. 
 %
-%   PRM.SEGMSURF.GETMINIMAMETHOD = 'NUCLEUS': Using nucleus markers. This option
+%   PRM.SEGMSURF.GETMINIMA.METHOD = 'NUCLEUS': Using nucleus markers. This option
 %   requires PRM.NUCLEUSCH to be defined.
 %
 %   PRM.SEGMSURF.GETMINIMA.METHOD = 'AUTOMATED' (default): Automated 

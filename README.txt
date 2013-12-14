@@ -26,7 +26,7 @@
 %   CellSegm is strictly for academic purposes and non-commercial use. All academic usage 
 %   of CellSegm must include a reference to the following paper:
 %
-%   CellSegm - a MATLAB toolbox for high-throughput 3D cell segmentation,Erlend Hodneland, 
+%   CellSegm - a MATLAB toolbox for high-throughput 3D cell segmentation,Erlend Hodneland,
 %   Tanja Kögel, Dominik Michael Frei, Hans-Hermann Gerdes and Arvid Lundervold. 
 %   Source Code for Biology and Medicine 2013, 8:16 doi:10.1186/1751-0473-8-16	 
 %

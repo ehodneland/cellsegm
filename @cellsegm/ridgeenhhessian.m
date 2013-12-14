@@ -54,6 +54,7 @@ if nargin > 2
         end;            
     end;    
 end;
+prm.h = rowvect(prm.h);
 
 msg = ['This is RIDGENHHESSIAN using settings'];
 disp(msg);
@@ -97,7 +98,6 @@ for i = 1 : M
         end;
     end;
 end;
-
 
 % ridge in 3D (also for 2D ok)
 v = -E(:,:,:,1) - E(:,:,:,2).^2 - E(:,:,:,3).^2;

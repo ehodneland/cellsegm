@@ -365,6 +365,7 @@ axis image;title('Found cells');
 
 b = b + 0.5;
 pos = [l b w h];
+% implane(implane < 100) = 0;
 subplot('Position',pos);imagesc(implane);colormap(gray);drawnow;axis off;
 if isequal(prm.visch1,'imsegm')
     axis image;title(['Channel ' prm.visch1])

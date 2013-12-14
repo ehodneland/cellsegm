@@ -25,6 +25,11 @@ function [prm] = mergeinputpar(prm,prmin)
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
 %
+
+if isempty(prmin)
+    return;
+end;
+
 f = fieldnames(prmin);
 for i = 1 : numel(f)
     prm2 = prmin.(f{i});

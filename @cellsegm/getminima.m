@@ -295,6 +295,9 @@ vis = 0;
 % save test
 
 dim = size(imsegm);
+if numel(dim) == 2
+    dim = [dim 1];
+end;
 
 % find background
 imhere = scale(imsegm);    
@@ -352,8 +355,13 @@ for i = 1 : dim(3)
 end;
 % minimabck = bwareaopen(minimabck,round(prm.minvolvox/8));
 
+
+% remove lower ones
+[range,minz,maxz] = bwrange(minimacell);
+minimabck(:,:,1:maxz) = 0;
+
 if vis
-    'After remove small'
+    'After remove small and removing lower ones'
     showall(imhere,minimabck,minimacell)
 end;
 

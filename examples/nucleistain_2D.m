@@ -56,5 +56,5 @@ cellsegm.show(cellbw3,3);title('Cell segmentation by THRS');axis off;
 % improving the results by splitting of cells
 splitth = 1;
 plane = 1;
-cellbw4 = cellsegm.splitcells(cellbw1,splitth,plane);
-cellsegm.show(cellbw4,4);title('Cell segmentation by ADTH with splitting');axis off;
+cellbw4 = cellsegm.splitcells(cellbw3,splitth,plane);
+cellsegm.show(cellbw4,4);title('Cell segmentation by THRS with splitting');axis off;

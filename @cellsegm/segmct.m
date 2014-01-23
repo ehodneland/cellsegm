@@ -195,17 +195,27 @@ disp(msg);
 if isequal(prm.method,'thrs')
     % Segmentation by iterative thresholding until largest region is larger
     % than expected cell volume
-    [cellbw,wat] = segmthrs(im,prm,conn);
-elseif isequal(prm.method,'gradient')
+    prmin = prm.thrs;
+    prmin.h = prm.h;
+    prmin.minvolvox = prm.minvolvox;
+    prmin.maxvolvox = prm.maxvolvox;
+    [cellbw,wat] = segmthrs(im,prmin,conn);
+% elseif isequal(prm.method,'gradient')
     % Almost 
     % Combining intensity, edge and shape information for 2d and 3D
     % segmentaton fo cell nuclei in tissue sections, Wahlby, Journal of
     % microscopy, Vol 215, pp 67-76, 2004
     % This one is quite good for Tanjas NRK cells!
-    [cellbw,wat] = segmgrad(im,prm);
+%     prmin = prm.gradient;
+%     prmin.h = prm.h;
+%     [cellbw,wat] = segmgrad(im,prm);
 elseif isequal(prm.method,'adth')
     % adpative thresholding
-    [cellbw,wat] = segmadth(im,prm,conn);
+    prmin = prm.adth;
+    prmin.h = prm.h;
+    prmin.minvolvox = prm.minvolvox;
+    prmin.maxvolvox = prm.maxvolvox;
+    [cellbw,wat] = segmadth(im,prmin,conn);
 else
     error('No valid method given');
 end;
@@ -245,10 +255,10 @@ disp(msg);
 function [cellbw,wat] = segmadth(im,prm,conn)
 
 % adaptive thresholding
-d = round(prm.adth.filtrad/mean(prm.h(1:2)));
-msg = ['Adaptive filtering with filter radius ' num2str(d) ' and threshold ' num2str(prm.adth.adth)];
+d = round(prm.filtrad/mean(prm.h(1:2)));
+msg = ['Adaptive filtering with filter radius ' num2str(d) ' and threshold ' num2str(prm.adth)];
 disp(msg);
-cellbw = adaptfiltim(im,d,prm.adth.adth);
+cellbw = adaptfiltim(im,d,prm.adth);
 
 % remove the small cells
 disp('Remove small parts that are not cells')
@@ -348,7 +358,7 @@ test = 0;
 % must have this for the uint8 thing!!
 im = 255*scale(im);
 im = uint8(im);
-% NB, lavere gir høyere!!!
+% NB, lavere gir h??yere!!!
 cellbw = zeros(size(im));
 level = prm.otsuth*graythresh(im);
 level = max(0,level);
@@ -520,7 +530,7 @@ end;
 
 im = 255*scale(im);
 im = uint8(im);
-% NB, lavere gir høyere!!!
+% NB, lavere gir h??yere!!!
 cellbw = zeros(size(im));
 % cellbwold = cellbw;
 
@@ -539,7 +549,7 @@ while 1
     msg = ['Thresholding at ' num2str(th)];
     disp(msg);
     
-    if th <= prm.thrs.th
+    if th <= prm.th
         msg = ['Threshold is lower than specified, terminating loop'];
         disp(msg);
         break;
@@ -592,27 +602,11 @@ cellbw = imopen(cellbw,se);
 
 
 
-% load ball3;se = getball(ball,3,1);
-% cellbw = imopen(cellbw,se);
-
-
-% % erode to disconnect after open
-% load ball1;se = getball(ball,1,1);
-% cellbw = imerode(cellbw,se);
-
-
 if vis == 1
     disp('After filling of holes and opening')
     showall(im,cellbw);
 end;
 
-% % cut the cells
-% disp('Cutting cells')
-
-% if vis == 1
-%     disp('After cutting')
-%     showall(im,cellbw)
-% end;
 
 % remove the small cells
 disp('Remove small parts that are not cells')
@@ -622,32 +616,6 @@ cellbw = bwareaopen(cellbw,prm.minvolvox,6);
 
 msg = ['Removed ' int2str(Lin-Lout) ' regions due to small size'];
 disp(msg);
-
-% Cannot do this before split!
-% % remove the large cells
-% Lin = Lout;
-% cellbw = cellbw - bwareaopen(cellbw,prm.maxvolvox,6);
-% [faser,Lout] = bwlabeln(cellbw);
-% 
-% msg = ['Removed ' int2str(Lin-Lout) ' regions due to large size'];
-% disp(msg);
-
-% % fine tune segmentation
-% intth = 0.7;
-% vis = 1;
-% if vis == 1
-%     cellbwold = cellbw;
-% end;
-% cellbw = dilatestrong( cellbw,im,intth,conn);
-% 
-% 
-% if vis == 1
-%     disp('After dilate strong')
-%     showall(im,cellbwold,cellbw)
-% end;
-
-% mid = ceil(dim(3)/3);
-% cellbw = splitcells(cellbw,1,mid);
 
 
 % output watershed image
@@ -659,262 +627,5 @@ if vis == 1
     showall(im,cellbw)
 end;
 
-% ----------------------------------------------
-
-% this method is dilating one pixel at a time, dont think it makes a big
-% differnece to dilatestrong
-function [cellbw] = dilatestrong2(bw,im,intth,conn)
-
-imini = im;
-load ball2;se = getball(ball,2,1);
-niter = 0;
-while 1
-    niter = niter + 1;
-    bwold = bw;
-    
-    % label the binary regions
-    [faser,L] = bwlabeln(bw,conn);
-%     showall(im,bwold,bw,faser)
-        
-    % dilated border
-%     border = zeros(size(im));
-    faserth = zeros(L,1);
-    for i = 1 : L
-        reghere = faser == i;
-        
-        % the dilation
-        borderhere = imdilate(reghere,se) - reghere;
-        
-%         % update BORDER to use it later 
-%         border(borderhere == 1) = 1;
-        
-        % update the FASERBORDER to know which FASER the dilated pixel
-        % belongs to
-        faser(borderhere == 1) = i;
-        
-        % the threshold for this FASER
-        faserth(i) = mean(im(reghere));
-    end;
-    
-%     showall(im,bw,faser)
-    % the border to sort the values
-    border = gt(faser,0) - bw;
-
-    % sort the pixels
-    ind = find(border == 1);
-    val = im(ind);
-    [sorted,indsorted] = sort(val,1,'descend');
-    
-    % loop over the sorted pixels to start wiht the smallest one!!
-    for i = 1 : length(val)
-        indarray = indsorted(i);
-        indimage = ind(indarray);
-        
-        % this image value
-        valhere = val(indarray);
-        
-        % this faser value to find the connection to FASER to check for
-        % threshold value
-        faservalhere = faser(indimage);
-
-        % the threshold for this FASER
-        thhere = faserth(faservalhere)*intth;
-        
-        % neighbour values to look for crash!!
-        point = zeros(size(im));
-        point(indimage) = 1;
-        point = imdilatefast(point,ones(5,5));
-        faservalaround = faser(point == 1);
-        
-        % take away itself and 0, that is no crash
-        faservalaround(faservalaround == faservalhere) = [];
-        faservalaround(faservalaround == 0) = [];
-
-%         if indimage == 38279
-%             faserhere = faser;
-%             im(indimage) = max(im(:));
-%             faserhere(indimage) = max(faser(:)) + 2;
-%             valhere
-%             thhere
-%             indimage
-%             showall(im,faserhere)
-%             im = imini;
-%         end;
-        
-        % too close neighbour region
-        if length(faservalaround)> 0
-%             disp('Too close neighbour, continue')
-            continue;
-        % too weak, we stop since the array is sorted
-        elseif valhere < thhere
-            disp('Too weak, break');
-            
-            break;            
-        end;
-        
-        % assign the value
-        bw(indimage) = 1;
-        
-    end;
-    
-%     faserth
-%     showall(im,bwold,bw,faser)
-    
-    % stop criterion
-    diffbw = bw-bwold;
-    numchange = sum(diffbw(:));
-    disp(sprintf('Number of dilations: %i, changing pixels: %i',niter,numchange))
-    if numchange == 0
-        break;
-    end;    
-end;
-% output
-cellbw = bw;
-cellbw = bw;
-
-% ----------------------------------------------
-
-function [cellbw] = dilatestrong(BW,im,intth,conn)
-
-[M N O] = size(im);
-
-[faser,numcells] = bwlabeln(BW,conn);
-
-%
-% Get the means to have a stop criteria
-%
-borderth = zeros(M,N,O);
-% borderth = ones(size(im))*mean(im(:));
-
-% to be similar as below
-cellbw = gt(faser,0);   
-% radius of dilation between each step
-rad = 2;
-name = ['ball' int2str(rad)];
-load(name);se = getball(ball,rad,O);
-niter = 0;
-while 1
-    niter = niter + 1;
-    
-    % dilate  to find the border of the cell
-    % NOTE: BORDERFASER is the border of the cells, not the image!!!!
-    perim = zeros(M,N,O);
-    for i = 1 : numcells 
-        reghere = eq(faser,i);
-        perimhere = imdilatefast(reghere,se) - reghere;
-        perim = perim + perimhere;
-        
-        % too keep track of the segmentation later
-        faser(perimhere == 1) = i;
-        
-%         borderfaser(perimhere == 1) = i;
-        % update the thresholds
-        borderth(reghere == 1) = mean(im(reghere));
-        borderth(perimhere == 1) = mean(im(reghere));
-    end;
-
-    % the places of conflict between regions
-    perim(perim > 1) = 0;
-
-%     showall(im,perim,cellbw)
-        
-    % remove the pixels with too low intensities
-    perim = perim.*ge(im,intth*borderth);
-        
-    % add the perims to the cells
-    cellbwold = cellbw;
-    cellbw(perim == 1) = 1;
-
-    % update the regions in FASER to keep track of the cells
-    faser = faser .*cellbw;
 
 
-    diffBW = cellbw-cellbwold;
-    numchange = sum(diffBW(:));
-    disp(sprintf('Number of dilations: %i, changing pixels: %i',niter,numchange))
-    if numchange == 0
-        break;
-    end;
-    
-
-%     showall(im,perim,cellbw)
-%     show(im,1)
-%     show(cellbw,2)
-%     show(cellbw,6)
-%     pause
-
-end
-
-% showall(im,cellbw)
-
-% -----------------------------------------------
-
-function [cellbw] = convexmerge(cellbw)
-
-[M N O] = size(cellbw);
-
-[faser,L] = bwlabeln(cellbw);
-
-for i = 1 : L
-    reghere = eq(faser,i);
-    
-    % get the neighbours
-    load ball3;se = getball(ball,3,1);
-    dilreghere = imdilate(reghere,se);
-    
-    neigh = unique(faser(dilreghere == 1));
-    neigh(neigh == i) = [];
-    neigh(neigh == 0) = [];
-    numneigh = length(neigh);
-    
-    
-    % loop over the neighbrous to test convexity
-    ratioboth = zeros(numneigh,1);
-    for j = 1 : numneigh
-        j
-        
-        % this neighbour
-        neighhere = neigh(j);                
-        regneigh = eq(faser,neighhere);
-
-        % the combination together
-        load ball3;se = getball(ball,3,1);
-        regboth = imclose(regneigh + reghere,se);
-        
-        % the convex are of the combination of this region and the
-        % neighbour
-        convareaboth = calcconvarea(regboth);        
-        areaboth = length(find(regboth));
-        
-        % the ratio
-        ratioboth(j) = areaboth / convareaboth; 
-        
-    end;
-                
-    % convex area of thie region
-    convareareghere = calcconvarea(reghere);
-    areahere = length(find(reghere));
-    ratiohere = areahere / convareareghere;
-    
-    
-   numneigh
-    show(reghere,2)
-    show(faser,3)
-    neigh
-    ratioboth
-    ratiohere
-    pause
-    
-    
-end;
-
-% ---------------------------------------------
-
-function [convarea] = calcconvarea(BW)
-
-[M N O] = size(BW);
-convarea = 0;
-for j = 1 : O
-    props = regionprops(double(BW(:,:,j)),'ConvexArea');
-    convarea = convarea + props.ConvexArea;        
-end;

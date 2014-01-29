@@ -197,8 +197,6 @@ for j = 1 : prm.nch
     
 end;
 
-
-
 % Remove small cells
 % NB not permanently, only visually
 b = b - h - 5;
@@ -213,7 +211,6 @@ handle.celldim.editfield(1).handle = uicontrol('Parent',handle.control.handle,'S
 dw = dw + handle.editfield.w;
 handle.celldim.editfield(2).handle = uicontrol('Parent',handle.control.handle,'Style','edit','String','Inf', ...
     'Position',[left+dw b handle.editfield.w h]);    
-
 
 % Remove boundary cells
 % NB not permanently, only visually
@@ -252,6 +249,16 @@ handle.control.title.pos = [left b 4*w h];
 handle.control.title.handle = uicontrol('Parent',handle.control.handle,'Style','Text','String','Message field', ...
      'Position',handle.control.title.pos);   
 
+% show position
+left = handle.button.left;
+
+b = 1;
+%b = b - h - 5;
+handle.cellstatus.coordx.handle = uicontrol('Parent',handle.control.handle,'Style','Text','String','cursorx', ...
+    'Position',[left b w h]);
+left = left + w;
+handle.cellstatus.coordy.handle = uicontrol('Parent',handle.control.handle,'Style','Text','String','cursory', ...
+    'Position',[left b w h]);
 
 % to save settings
 prm.pathsettings = fullfile(['~' prm.username],'.cellsegm');
@@ -475,176 +482,25 @@ while 1
             plane = str2double(planenew);
         end;
     elseif isequal(choice,'classification')
-        % user defined input
-        figure(handle.fig.handle);
-        [y x] = ginput(1);
-        x = round(x);
-        y = round(y);
-        val = wat(x,y);
-        a = info.classifycells;
-        nth = numel(a.propname);
-
-        A = {'Classificator','Value','Threshold','Cell'};
-        for j = 1 : nth
-            name = a.propname{j};
-            A{j+1,1} = name;
-            A{j+1,2} = num2str(a.prop.(name)(val));
-            A{j+1,3} = num2str(double(a.prm.(a.prm.thname{j})));            
-            A{j+1,4} = num2str(double(a.iscellhere(val,j)));            
-        end;
-%         A{nth+2,1} = 'All classificators must be 1 to become a cell';
-        
-         
-        % print the string to the figure 
-        b = handle.control.title.pos(2) - 2*handle.button.h;
-        h = handle.button.h;
-
-        w = handle.button.w;        
-        for j = 1 : size(A,1)-1
-            
-            left = handle.button.left;
-            for k = 1 : size(A,2)                
-                handle.control.message.handle(j,k) = uicontrol('Parent',handle.control.handle,'Style','Text','String',A{j,k}, ...
-                'Position',[left b w h]);   
-                left = left + handle.button.w;           
-            end;
-            b = b - handle.button.h;
-        end;
-%         % last message string
-%         left = handle.button.left;
-%         w = handle.button.h*4;
-%         handle.control.message.handle(j+1,1) = uicontrol('Parent',handle.control.handle,'Style','Text','String',A{nth+2,1},'Position',[left b w h]);
-        
+        callbckclassification(handle,wat,info);
+               
     elseif isequal(choice,'cellstatus')
                
-        % user defined input
-        figure(handle.fig.handle);
-        [y x] = ginput(1);
-        x = round(x);
-        y = round(y);
-
-        val = wat(x,y);
-        
-        % this is a boundary
-        if val == 0
-            continue;
-        end;
-        
-        % new cell status, we must save the stack again
-        prm.cellmod = 1;
-
-        % remove/add the cell
-        reg = wat == val;
-        flag = cellbw(x,y,plane) == 1;
-        if flag == 1
-            cellbw(reg) = 0;
-            cellbwvis(reg) = 0;
-        elseif flag == 0
-            cellbw(reg) = 1;
-            cellbwvis(reg) = 1;
-        end;
-        % add a column with manual removal in the info struct
-        if ~ismember('manual',info.classifycells.propname) 
-            info.classifycells.propname = [info.classifycells.propname {'manual'}];
-            ncells = size(info.classifycells.iscellfinal,1);
-            info.classifycells.iscellhere = [info.classifycells.iscellhere ones(ncells,1)];
-            info.classifycells.prm.thname = [info.classifycells.prm.thname {'ismanual'}];
-            info.classifycells.prm.propname = [info.classifycells.prm.propname {'manual'}];
-            info.classifycells.prm.logic = [info.classifycells.prm.propname {'eq'}];
-            info.classifycells.prm.ismanual = 1;
-            info.classifycells.prop.manual = zeros(ncells,1);            
-        end;
-        if flag == 1
-            info.classifycells.iscellhere(val,end) = 0;
-            info.classifycells.iscellfinal(val) = 0;
-            info.classifycells.prop.manual(val) = 0;            
-        elseif flag == 0
-            info.classifycells.iscellhere(val,end) = 1;
-            info.classifycells.iscellfinal(val) = 1;            
-            info.classifycells.prop.manual(val) = 1;            
-        end;
+        % change the cell status
+        [info,prm] = callbckcellstatus(wat,cellbw,info,prm,handle);
         
 %         show(cellbw(:,:,1),3)
     elseif isequal(choice,'volume')
         
-        % to use in boundary
-        volbw = zeros(dim);
-            
-        if prm.volbw == 1
-            cellbwvis = cellbw;
-            prm.volbw = 0;
-        elseif prm.volbw == 0;
-            
-            % small cells
-            v = get(handle.celldim.editfield(1).handle,'String');
-            if ~isempty(v)
-                try
-                    v = str2double(v);                    
-                catch
-                    set(handle.celldim.editfield(1).handle,'');
-                end;
-            end; 
-            if ~isinf(v)
-                a = cellbw;
-                v = round(v/prm.voxelvol);            
-                msg = ['Removing small cells'];
-                disp(msg);                
-                cellbwvis = bwareaopenrange(a,v,6);
-                d = a - cellbwvis;
-                volbw(d == 1) = 1;
-            end;
-
-            % large cells
-            v = get(handle.celldim.editfield(2).handle,'String');
-            if ~isempty(v)
-                try
-                    v = str2double(v);                    
-                catch
-                    set(handle.celldim.editfield(2).handle,'');
-                end;
-            end;        
-            if ~isinf(v)
-                a = cellbwvis;
-                v = round(v/prm.voxelvol);
-                msg = ['Removing large cells'];
-                disp(msg);
-                cellbwvis = cellbwvis - bwareaopenrange(a,v,6);
-                d = a - cellbwvis;
-                volbw(d == 1) = 1;
-            end;
-            prm.volbw = 1;
-        end;        
-        
-        % add boundary information
-        cellbwvis(boundarybw == 1) = 0;
+        % remove cells that are either below a threshold or above a
+        % threshold
+        [cellbwvis,boundarybw,volbw,prm] = callbckvolume(cellbwvis,boundarybw,prm,cellbw,handle);        
         
     elseif isequal(choice,'boundary')
         
-        % to use in size removal
-        boundarybw = zeros(dim);
+        % remove cells that are attached to the boundary
+        [cellbwvis,boundarybw,prm] = callbckboundary(cellbwvis,prm,cellbw,volbw,handle);
         
-        if prm.boundarybw == 0                    
-            
-            a = cellbwvis;
-            v = get(handle.boundary.editfield.handle,'String');
-            if ~isempty(v)
-                try
-                    v = str2double(v);                    
-                catch
-                    set(handle.boundary.editfield.handle,'');
-                end;
-            end;    
-            cellbwvis = imclearborderth(cellbw,v);   
-            d = a  - cellbwvis;
-            % the boundary cells we keep if we want to put them back
-            boundarybw(d == 1) = 1;
-            prm.boundarybw = 1;
-        elseif prm.boundarybw == 1
-            cellbwvis = cellbw;
-            prm.boundarybw = 0;
-        end;
-        % add size information
-        cellbwvis(volbw == 1) = 0;
         
 %     elseif isequal(choice,'drawch')
 %         v = get(draw.checkbox.handle,'String');
@@ -652,13 +508,11 @@ while 1
 %             showimagedraw(im,draw,plane);
 %         end;
         
-    elseif isequal(choice,'draw')        
-        figure(handle.draw.handle);
-        [x, y] = ginput(2);
-        cline = cline + 1;
-        linedata.x{cline} = round(x);
-        linedata.y{cline} = round(y);            
-        linedata.z{cline} = [plane; plane];            
+    elseif isequal(choice,'draw')      
+        
+        % draw a line in the image
+        [linedata,cline] = callbckdraw(handle,cline,plane);
+        
     elseif isequal(choice,'quit')
         if prm.cellmod == 1
             savestack(pathstack,info,cellbw);        
@@ -695,7 +549,226 @@ while 1
     
 end;
 
+%---------------------------------------------
+function [] = cellstatuscoordupdate(src,evnt,cellstatus,handlesubpl)
+     
+ v = get(handlesubpl,'CurrentPoint');
+
+ v2 = num2str(v(1,1));
+ v1 = num2str(v(1,2));
+ set(cellstatus.coordx.handle,'String',v1);
+ set(cellstatus.coordy.handle,'String',v2);
+ set(cellstatus.coordx.handle,'UserData',v(1,1));
+ set(cellstatus.coordy.handle,'UserData',v(1,2));
+        
+ %-------------------------------------------
+ 
+ function [] = cellstatuscoordselect(src,evnt)
+ uiresume(src);
+   
 %-----------------------------------------------
+
+function [info,prm] = callbckcellstatus(wat,cellbw,info,prm,handle)
+
+h = handle.fig.handle;                    
+set(h,'WindowButtonMotionFcn',{@cellstatuscoordupdate,handle.cellstatus,handle.subpl.handle(1,1)});
+set(h,'pointer','Crosshair');
+set(h,'WindowButtonDownFcn',{@cellstatuscoordselect});
+uiwait(h);
+set(h,'pointer','Arrow');
+
+% user defined input       
+%         figure(handle.fig.handle);
+%         [y x] = ginput(1);
+%         x = round(x);
+%         y = round(y);
+
+val = wat(x,y);
+
+% this is a boundary
+if val == 0
+    return;
+end;
+
+% new cell status, we must save the stack again
+prm.cellmod = 1;
+
+% remove/add the cell
+reg = wat == val;
+flag = cellbw(x,y,plane) == 1;
+if flag == 1
+    cellbw(reg) = 0;
+    cellbwvis(reg) = 0;
+elseif flag == 0
+    cellbw(reg) = 1;
+    cellbwvis(reg) = 1;
+end;
+% add a column with manual removal in the info struct
+if ~ismember('manual',info.classifycells.propname) 
+    info.classifycells.propname = [info.classifycells.propname {'manual'}];
+    ncells = size(info.classifycells.iscellfinal,1);
+    info.classifycells.iscellhere = [info.classifycells.iscellhere ones(ncells,1)];
+    info.classifycells.prm.thname = [info.classifycells.prm.thname {'ismanual'}];
+    info.classifycells.prm.propname = [info.classifycells.prm.propname {'manual'}];
+    info.classifycells.prm.logic = [info.classifycells.prm.propname {'eq'}];
+    info.classifycells.prm.ismanual = 1;
+    info.classifycells.prop.manual = zeros(ncells,1);            
+end;
+if flag == 1
+    info.classifycells.iscellhere(val,end) = 0;
+    info.classifycells.iscellfinal(val) = 0;
+    info.classifycells.prop.manual(val) = 0;            
+elseif flag == 0
+    info.classifycells.iscellhere(val,end) = 1;
+    info.classifycells.iscellfinal(val) = 1;            
+    info.classifycells.prop.manual(val) = 1;            
+end;
+
+
+%---------------------------------------------
+
+function [linedata,cline] = callbckdraw(handle,cline,plane)
+    
+figure(handle.draw.handle);
+[x, y] = ginput(2);
+cline = cline + 1;
+linedata.x{cline} = round(x);
+linedata.y{cline} = round(y);            
+linedata.z{cline} = [plane; plane];            
+
+%---------------------------------------------
+
+function [cellbwvis,boundarybw,prm] = callbckboundary(cellbwvis,prm,cellbw,volbw,handle)
+    
+dim = prm.dim;
+% to use in size removal
+boundarybw = zeros(dim);
+
+if prm.boundarybw == 0                    
+
+    a = cellbwvis;
+    v = get(handle.boundary.editfield.handle,'String');
+    if ~isempty(v)
+        try
+            v = str2double(v);                    
+        catch
+            set(handle.boundary.editfield.handle,'');
+        end;
+    end;    
+    cellbwvis = imclearborderth(cellbw,v);   
+    d = a  - cellbwvis;
+    % the boundary cells we keep if we want to put them back
+    boundarybw(d == 1) = 1;
+    prm.boundarybw = 1;
+elseif prm.boundarybw == 1
+    cellbwvis = cellbw;
+    prm.boundarybw = 0;
+end;
+% add size information
+cellbwvis(volbw == 1) = 0;
+
+%--------------------------------------------
+
+function [cellbwvis,boundarybw,volbw,prm] = callbckvolume(cellbwvis,boundarybw,prm,cellbw,handle)
+
+dim = prm.dim;
+    
+% to use in boundary
+volbw = zeros(dim);
+
+if prm.volbw == 1
+    cellbwvis = cellbw;
+    prm.volbw = 0;
+elseif prm.volbw == 0;
+
+    % small cells
+    v = get(handle.celldim.editfield(1).handle,'String');
+    if ~isempty(v)
+        try
+            v = str2double(v);                    
+        catch
+            set(handle.celldim.editfield(1).handle,'');
+        end;
+    end; 
+    if ~isinf(v)
+        a = cellbw;
+        v = round(v/prm.voxelvol);            
+        msg = ['Removing small cells'];
+        disp(msg);                
+        cellbwvis = bwareaopenrange(a,v,6);
+        d = a - cellbwvis;
+        volbw(d == 1) = 1;
+    end;
+
+    % large cells
+    v = get(handle.celldim.editfield(2).handle,'String');
+    if ~isempty(v)
+        try
+            v = str2double(v);                    
+        catch
+            set(handle.celldim.editfield(2).handle,'');
+        end;
+    end;        
+    if ~isinf(v)
+        a = cellbwvis;
+        v = round(v/prm.voxelvol);
+        msg = ['Removing large cells'];
+        disp(msg);
+        cellbwvis = cellbwvis - bwareaopenrange(a,v,6);
+        d = a - cellbwvis;
+        volbw(d == 1) = 1;
+    end;
+    prm.volbw = 1;
+end;        
+
+% add boundary information
+cellbwvis(boundarybw == 1) = 0;
+
+%----------------------------------------------
+
+function [] = callbckclassification(handle,wat,info)
+
+% user defined input
+figure(handle.fig.handle);
+[y x] = ginput(1);
+x = round(x);
+y = round(y);
+val = wat(x,y);
+a = info.classifycells;
+nth = numel(a.propname);
+
+A = {'Classificator','Value','Threshold','Cell'};
+for j = 1 : nth
+    name = a.propname{j};
+    A{j+1,1} = name;
+    A{j+1,2} = num2str(a.prop.(name)(val));
+    A{j+1,3} = num2str(double(a.prm.(a.prm.thname{j})));            
+    A{j+1,4} = num2str(double(a.iscellhere(val,j)));            
+end;
+%         A{nth+2,1} = 'All classificators must be 1 to become a cell';
+
+
+% print the string to the figure 
+b = handle.control.title.pos(2) - 2*handle.button.h;
+h = handle.button.h;
+
+w = handle.button.w;        
+for j = 1 : size(A,1)-1
+
+    left = handle.button.left;
+    for k = 1 : size(A,2)                
+        handle.control.message.handle(j,k) = uicontrol('Parent',handle.control.handle,'Style','Text','String',A{j,k}, ...
+        'Position',[left b w h]);   
+        left = left + handle.button.w;           
+    end;
+    b = b - handle.button.h;
+end;
+%         % last message string
+%         left = handle.button.left;
+%         w = handle.button.h*4;
+%         handle.control.message.handle(j+1,1) = uicontrol('Parent',handle.control.handle,'Style','Text','String',A{nth+2,1},'Position',[left b w h]);
+
+%---------------------------------------------
 
 
 function [draw] = showimagedraw(im,draw,plane)
@@ -852,7 +925,8 @@ for j = 1 : prm.nch
     end;
     
     figure(handle.fig.handle);
-    subpl.handle(1,j) = subplot('Position',pos{j},'Parent',handle.fig.handle);imshow(implane{j},sc{j});colormap(gray);drawnow;axis off;axis image;
+    subpl.handle(1,j) = subplot('Position',pos{j},'Parent',handle.fig.handle);imshow(implane{j},sc{j});
+    colormap(gray);drawnow;axis off;axis image;
     if isequal(prm.vis(j).ch,'imsegm')
         axis image;title(['Channel ' prm.vis(j).ch])
     else
@@ -915,6 +989,7 @@ p(2) = 0.01;
 figure(handle.fig.handle);
 subpl.handle(2,end) = subplot('Position',p,'Parent',handle.fig.handle);imagesc(cellbwplane);colormap(gray);drawnow;axis off;axis image;
 axis image;title('Found cells');
+handle.subpl = subpl;
 
 % make lines
 for i = 1 : size(subpl.handle,1)

@@ -252,12 +252,18 @@ handle.control.title.handle = uicontrol('Parent',handle.control.handle,'Style','
 % show position
 left = handle.button.left;
 
+% Bottom line show coordinates of mousepointer
 b = 1;
-%b = b - h - 5;
 handle.cellstatus.coordx.handle = uicontrol('Parent',handle.control.handle,'Style','Text','String','cursorx', ...
     'Position',[left b w h]);
 left = left + w;
 handle.cellstatus.coordy.handle = uicontrol('Parent',handle.control.handle,'Style','Text','String','cursory', ...
+    'Position',[left b w h]);
+
+% Bottom line plane
+b = b + h;
+left = handle.button.left;
+handle.up.plane.handle = uicontrol('Parent',handle.control.handle,'Style','Text','String','plane', ...
     'Position',[left b w h]);
 
 % to save settings
@@ -306,7 +312,8 @@ end;
 
 while 1
     
-   
+    choice = '';
+    
     if isequal(prm.option,'segm')
          name = [ 'stack' int2str(i) '-segm.mat'];
      elseif isequal(prm.option,'raw')
@@ -391,8 +398,7 @@ while 1
         
     end;
     iold = i;        
-
-    
+   
          
    % figure size in relation to screen
     scrsz = get(0,'ScreenSize');
@@ -420,41 +426,19 @@ while 1
 
     
     % wait for user
-    flagui = 0;
-%     k = waitforbuttonpress;
+    k = waitforbuttonpress;
     
-%     curchar=uint8(get(gcf,'CurrentCharacter'));
-%     if isequal(curchar,30);
-%         plane = plane + 1;
-%         choice = 'up';
-%         uiresume(gcbf);
-%     elseif isequal(curchar,31);
-%         plane = plane - 1;
-%         choice = 'down';
-%         uiresume(gcbf);
-%     end;
-%     choice
-%     waitfor(fig.handle,'CurrentCharacter');
-    
-%     if k == 0
-        uiwait(handle.control.handle)      
-        flagui = 1;
-%     end;
-    
-    % no uicontrol input
-    if flagui == 0
-        % shortcuts from keyboard
-        if isequal(ch,'uparrow');
-            choice = 'up';
-        elseif isequal(ch,'downarrow');
-            choice = 'down';
-        elseif isequal(ch,'rightarrow');
-            choice = 'next';
-        elseif isequal(ch,'leftarrow');
-            choice = 'previous';
+    % a kepress
+    if k == 1
+        curchar=get(gcf,'CurrentCharacter');
+        curchar = uint8(curchar);
+        if isequal(curchar,30);
+            choice = 'up';            
+        elseif isequal(curchar,31);
+            choice = 'down';            
         end;
     end;
-   
+               
     
     if isequal(choice,'up')
         plane = min(plane + 1,dim(3));
@@ -487,9 +471,8 @@ while 1
     elseif isequal(choice,'cellstatus')
                
         % change the cell status
-        [info,prm] = callbckcellstatus(wat,cellbw,info,prm,handle);
+        [info,prm,cellbw,cellbwvis] = callbckcellstatus(wat,cellbw,cellbwvis,info,prm,handle,plane);
         
-%         show(cellbw(:,:,1),3)
     elseif isequal(choice,'volume')
         
         % remove cells that are either below a threshold or above a
@@ -525,8 +508,7 @@ while 1
     end;
 
         
-    msg = ['Plane ' int2str(plane)];
-    disp(msg);
+    set(handle.up.plane.handle,'String',['plane ' int2str(plane)]);
   
     if finish == 1
         close(handle.fig.handle);
@@ -568,25 +550,33 @@ function [] = cellstatuscoordupdate(src,evnt,cellstatus,handlesubpl)
    
 %-----------------------------------------------
 
-function [info,prm] = callbckcellstatus(wat,cellbw,info,prm,handle)
+function [info,prm,cellbw,cellbwvis] = callbckcellstatus(wat,cellbw,cellbwvis,info,prm,handle,plane)
+
 
 h = handle.fig.handle;                    
+uistate = uisuspend(h);
 set(h,'WindowButtonMotionFcn',{@cellstatuscoordupdate,handle.cellstatus,handle.subpl.handle(1,1)});
 set(h,'pointer','Crosshair');
 set(h,'WindowButtonDownFcn',{@cellstatuscoordselect});
 uiwait(h);
 set(h,'pointer','Arrow');
 
-% user defined input       
-%         figure(handle.fig.handle);
-%         [y x] = ginput(1);
-%         x = round(x);
-%         y = round(y);
+uirestore(uistate);
+y = round(get(handle.cellstatus.coordx.handle,'UserData'));
+x = round(get(handle.cellstatus.coordy.handle,'UserData'));
+
+if x < 1 || y < 1 || x > prm.dim(1) || y > prm.dim(2)
+    msg = ['You hit outside the image'];
+    disp(msg);
+    return;
+end;
 
 val = wat(x,y);
 
-% this is a boundary
+% this is a boundary of a cell, try again
 if val == 0
+    msg = ['You hit outside the boundary of a cell'];
+    disp(msg);
     return;
 end;
 
@@ -599,6 +589,11 @@ flag = cellbw(x,y,plane) == 1;
 if flag == 1
     cellbw(reg) = 0;
     cellbwvis(reg) = 0;
+%     show(cellbw(:,:,1),3)
+%     show(wat(:,:,1),4)
+%     a = wat == val;
+%     show(a(:,:,1),5)
+%     pause
 elseif flag == 0
     cellbw(reg) = 1;
     cellbwvis(reg) = 1;

@@ -15,15 +15,15 @@ function [im] = smoothim(varargin)
 %
 %   PRM.PLANEWISE : either planewise (1, default) or full 3D (0)
 %   PRM.*DT       : controls the time step in method 1 and 3 (0.1, default)
-%   PRM.*MAXNITER : maximum number of iterations in method 1
-%                   and 3 (100, default) 
-%   PRM.*DIAMETER : controls the diameter of the filter in method 2 and 4 (13, default) 
+%   PRM.*MAXNITER : maximum number of iterations in CED
+%                   and EED (100, default) 
+%   PRM.*DIAMETER : controls the diameter of the filter in method DIRCED and GAUSSIAN (13, default) 
 %   PRM.*STDEV    : controls the standard deviation of the filter in method
-%                   4 (3, default)
-%   PRM.*KAPPA    : controls the edge sensitivity in method 1 and 3. This 
+%                   GAUSSSIAN (3, default)
+%   PRM.*KAPPA    : controls the edge sensitivity in method CED and EED. This 
 %                   is sensitiv to the scalar image values and a 
 %                   normalization of the image is recommended 
-%                   (0.001 for method 1, 10 for method 3, default)
+%                   (0.001 for method CED, 10 for method EED, default)
 %   The star * here means that it can be replaced by one of the mentioned 
 %   methods, for instance PRM.CED.DT is the time step for method 'ced'.
 %

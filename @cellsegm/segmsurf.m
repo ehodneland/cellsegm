@@ -290,7 +290,7 @@ if prm.illum
     disp(msg);
     se = strel('disk',12);
     imsegm = imtophat(imsegm,se);
-    if isequal(prm.getminimamethod,'nucleus')    
+    if isequal(prm.getminima.method,'nucleus')    
         imnucl = imtophat(imnucl,se);
     end;
 end;
@@ -328,8 +328,10 @@ if isequal(prm.getminima.method,'manual')
     end;    
 elseif isequal(prm.getminima.method,'nucleus')
     createminima = 1;
-else isequal(prm.getminima.method,'automated')
+elseif isequal(prm.getminima.method,'automated')
     createminima = 1;
+else
+    error('Wrong option in PRM.GETMINIMA.METHOD');
 end;
 
 % we create minima

@@ -34,12 +34,11 @@
 function [filtim] = dircohenh(varargin)
 
 im = varargin{1};
-d = varargin{2};
-h = varargin{3};
-hx = h(1);hy = h(2);hz = h(3);
-gpu = 0;
+prm.d = varargin{2};
+prm.h = varargin{3};
+prm.gpu = 0;
 if nargin == 4
-    gpu = varargin{4};
+    prm.gpu = varargin{4};
 end;
 
 msg = ['This is ' upper(mfilename) ' using settings'];
@@ -51,6 +50,7 @@ dim = size(im);
 if numel(dim) == 2
     dim = [dim 1];
 end;
+h = prm.h;
 
 % number of elements to remove before one takes the Olympic average. Set to
 % 1-->3
@@ -87,7 +87,7 @@ end;
 
 
 % the half filter size
-p = floor(d/2);
+p = floor(prm.d/2);
    
 % make filter
 c = makefilter(deg,p);
@@ -95,7 +95,7 @@ c = makefilter(deg,p);
 % number of directions
 numdir = size(c,2);
  
-if gpu
+if prm.gpu
     % for Jacket speedup
     im = gsingle(im);
 end;
@@ -108,21 +108,21 @@ for i = 1 : numdir
     chere = c(i);
 
     % filter image for max value
-    [maxim,sumim,numpoints] = maxfilt3(im,chere,numremele,dim,hx,hy,hz,gpu);
+    [maxim,sumim,numpoints] = maxfilt3(im,chere,numremele,dim,h,prm.gpu);
 
     % structural filtering   
     filtim = max(filtim,(sumim - sum(maxim,4))/ (numpoints-numremele));
 
 end;
 
-if gpu
+if prm.gpu
     % gather from GPU
     filtim = double(filtim);
 end;
 
 % ----------------------------------------------------------
 
-function [maxim,sumim,numpoints] = maxfilt3(im,c,numremele,dim,hx,hy,hz,gpu)
+function [maxim,sumim,numpoints] = maxfilt3(im,c,numremele,dim,h,gpu)
 
 % % relative coordinate where we want the image values
 % cx = c.x;
@@ -131,12 +131,12 @@ function [maxim,sumim,numpoints] = maxfilt3(im,c,numremele,dim,hx,hy,hz,gpu)
 
 % grid
 if dim(3) == 1
-%     [x y] = ndgrid(hx:hx:hx*dim(1),hy:hy:hy*dim(2));
-    [x y] = ndgrid(1:dim(1),1:dim(2));
+%     [x y] = ndgrid(h(1):h(1):h(1)*dim(1),h(2):h(2):h(2)*dim(2));
+    [x, y] = ndgrid(1:dim(1),1:dim(2));
     z = ones(dim(1:2));
 else    
-%     [x y z] = ndgrid(hx:hx:hx*dim(1),hy:hy:hy*dim(2),hz:hz:hz*dim(3));
-    [x y z] = ndgrid(1:dim(1),1:dim(2),1:dim(3));
+%     [x y z] = ndgrid(h(1):h(1):h(1)*dim(1),h(2):h(2):h(2)*dim(2),h(3):h(3):h(3)*dim(3));
+    [x, y, z] = ndgrid(1:dim(1),1:dim(2),1:dim(3));
 end;
 
 if gpu
@@ -162,8 +162,8 @@ for i = 1 : numpoints
     % Must not do this for z direction, then it goes wrong.
     % Do NOOOOOT replacestr any Inf or NaN by image values, then the filter
     % does not work anymore!!!!!!
-%     xhere(xhere < hx) = hx;xhere(xhere > dim(1)*hx) = dim(1)*hx;
-%     yhere(yhere < hx) = hx;yhere(yhere > dim(2)*hx) = dim(2)*hy;
+%     xhere(xhere < h(1)) = h(1);xhere(xhere > dim(1)*h(1)) = dim(1)*h(1);
+%     yhere(yhere < h(1)) = h(1);yhere(yhere > dim(2)*h(1)) = dim(2)*h(2);
     xhere(xhere < 1) = 1;xhere(xhere > dim(1)) = dim(1);
     yhere(yhere < 1) = 1;yhere(yhere > dim(2)) = dim(2);
     

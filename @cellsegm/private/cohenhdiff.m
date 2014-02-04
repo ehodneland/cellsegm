@@ -66,7 +66,8 @@ if ~isempty(prm.invdiff)
     disp('Using inverse diffusion');
 end;
 
-
+msg = ['This is ' mfilename ' using settings'];
+printstructscreen(prm);
 
 dim = size(u);
 ndim = numel(dim);

@@ -210,10 +210,10 @@ if isequal(prm.method,'thrs')
 %     [cellbw,wat] = segmgrad(im,prm);
 elseif isequal(prm.method,'adth')
     % adpative thresholding
-    prmin.adth = prm.adth;
+    prmin = prm.adth;
     prmin.h = prm.h;
     prmin.minvolvox = prm.minvolvox;
-    prmin.maxvolvox = prm.maxvolvox;
+    prmin.maxvolvox = prm.maxvolvox;    
     [cellbw,wat] = segmadth(im,prmin,conn);
 else
     error('No valid method given');
@@ -519,7 +519,7 @@ end;
 % expected cell volume
 function [cellbw,wat] = segmthrs(im,prm,conn)
 
-vis = 1;
+vis = 0;
 
 % [M N O] = size(im);
 dim = size(im);
@@ -560,13 +560,10 @@ while 1
         msg = ['Threshold creates too large regions, terminating loop'];
         disp(msg);
         % use the last good segmentation
-%         cellbw = cellbwold;
         break;
     end;
 
     th = th - 0.1;
-   
-%     cellbwold = cellbw;
 end;
 im = double(im);
 cellbw = bwareaopen(cellbw,round(prm.minvolvox/10));
@@ -577,12 +574,21 @@ if vis == 1
 end;
 
 % connect each
-load ball3;se = getball(ball,3,1);
-[faser,L] = bwlabeln(cellbw);
-for i = 1 : L
-    reghere = faser == i;
-    reghere = imclose(reghere,se);
-    cellbw(reghere == 1) = 1;
+v = min(round(prm.minvolvox/1000),3);
+if v > 0
+    name = ['ball' v];load(name);
+    se = getball(ball,v,1);
+    [faser,L] = bwlabeln(cellbw);
+    for i = 1 : L
+        reghere = faser == i;
+        reghere = imclose(reghere,se);
+        cellbw(reghere == 1) = 1;
+    end;
+end;
+
+if vis == 1
+    disp('After connect')
+    showall(im,cellbw);
 end;
 
 %
@@ -590,21 +596,34 @@ end;
 %
 disp('Fill holes')
 for i = 1 : dim(3)
-    cellbw(:,:,i) = imfill(cellbw(:,:,i),'holes');
+    a = cellbw(:,:,i);
+    [faser,L] = bwlabeln(a);
+    for j = 1 : L
+        reg = faser == j;
+        reg = imfill(reg,'holes');
+        a(reg == 1) = 1;
+    end;    
+    cellbw(:,:,i) = a;
 end;
 
-load ball1;se = getball(ball,1,1);
-cellbw = imerode(cellbw,se);
+if vis == 1
+    disp('After fill holes')
+    showall(im,cellbw);
+end;
+
+% load ball1;se = getball(ball,1,1);
+% cellbw = imerode(cellbw,se);
 
 % must do a opening to disconnect
-% was at 1
-load ball7;se = getball(ball,7,1);
-cellbw = imopen(cellbw,se);
-
-
+v = min(round(prm.minvolvox/200),7);
+if v > 0
+    name = ['ball' v];load(name);
+    load ball7;se = getball(ball,7,1);
+    cellbw = imopen(cellbw,se);
+end;
 
 if vis == 1
-    disp('After filling of holes and opening')
+    disp('After disconnect')
     showall(im,cellbw);
 end;
 

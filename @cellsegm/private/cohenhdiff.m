@@ -66,7 +66,7 @@ if ~isempty(prm.invdiff)
     disp('Using inverse diffusion');
 end;
 
-msg = ['This is ' mfilename ' using settings'];
+msg = ['This is ' upper(mfilename) ' using settings'];
 disp(msg);
 printstructscreen(prm);
 

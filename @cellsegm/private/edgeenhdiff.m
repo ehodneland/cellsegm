@@ -53,26 +53,23 @@ printstructscreen(prm);
 % filter image
 if O == 1
     disp('2D edge enhancing diffusion')
-    u = filter2d(u,kappa,dt,maxniter,prm);
+    u = filter2d(u,prm.kappa,prm.dt,prm.maxniter,prm.h);
 elseif O >= 2
     disp('3D edge enhancing diffusion')    
-    u = filter3d(u,kappa,dt,maxniter,prm);
+    u = filter3d(u,prm.kappa,prm.dt,prm.maxniter,prm.h);
 end;
 
 %-------------------------------------------------
 
-function [u] = filter3d(u,kappa,dt,niter,prm)
+function [u] = filter3d(u,kappa,dt,niter,h)
 
-hx = prm.h(1);
-hy = prm.h(2);
-hz = prm.h(3);
 
 filt = gaussian(3,1,1);
 for i = 1 : niter
     
 
-    [Rx Ry Rz] = derivcentr3(u,hx,hy,hz);
-%     [Rx Ry Rz] = gradient(u,hx,hy,hz);
+    [Rx Ry Rz] = derivcentr3(u,h(1),h(2),h(3));
+%     [Rx Ry Rz] = gradient(u,h(1),h(2),h(3));
     Rx = imfilter(Rx,filt,'replicate');
     Ry = imfilter(Ry,filt,'replicate');
     Rz = imfilter(Rz,filt,'replicate');
@@ -171,9 +168,9 @@ d31 = D.d31;
 d32 = D.d32;
 d33 = D.d33;
 
-hx = prm.h(1);
-hy = prm.h(2);
-hz = prm.h(3);
+h(1) = prm.h(1);
+h(2) = prm.h(2);
+h(3) = prm.h(3);
 
 % function for computing div(D*grad(u))
 
@@ -181,46 +178,43 @@ hz = prm.h(3);
 % Use central differences for the mixed terms!!!!
 
 % original scheme
-p1 = d11.*(transim(L,1,0,0)-L)/hx;
-p2 = d12.*(transim(L,0,1,0)-transim(L,0,-1,0))/(2*hy);
-p3 = d13.*(transim(L,0,0,1)-transim(L,0,0,-1))/(2*hz);
+p1 = d11.*(transim(L,1,0,0)-L)/h(1);
+p2 = d12.*(transim(L,0,1,0)-transim(L,0,-1,0))/(2*h(2));
+p3 = d13.*(transim(L,0,0,1)-transim(L,0,0,-1))/(2*h(3));
 
-p4 = d21.*(transim(L,1,0,0)-transim(L,-1,0,0))/(2*hx);
-p5 = d22.*(transim(L,0,1,0)-L)/hy;
-p6 = d23.*(transim(L,0,0,1)-transim(L,0,0,-1))/(2*hz);
+p4 = d21.*(transim(L,1,0,0)-transim(L,-1,0,0))/(2*h(1));
+p5 = d22.*(transim(L,0,1,0)-L)/h(2);
+p6 = d23.*(transim(L,0,0,1)-transim(L,0,0,-1))/(2*h(3));
 
-p7 = d31.*(transim(L,1,0,0)-transim(L,-1,0,0))/(2*hx);
-p8 = d32.*(transim(L,0,1,0)-transim(L,0,-1,0))/(2*hy);
-p9 = d33.*(transim(L,0,0,1)-L)/hz;
+p7 = d31.*(transim(L,1,0,0)-transim(L,-1,0,0))/(2*h(1));
+p8 = d32.*(transim(L,0,1,0)-transim(L,0,-1,0))/(2*h(2));
+p9 = d33.*(transim(L,0,0,1)-L)/h(3);
 
 r = ...
-    (p1-transim(p1,-1,0,0))/hx + ...
-    (transim(p2,1,0,0)-transim(p2,-1,0,0))/(2*hx) + ...
-    (transim(p3,1,0,0)-transim(p3,-1,0,0))/(2*hx) + ...
+    (p1-transim(p1,-1,0,0))/h(1) + ...
+    (transim(p2,1,0,0)-transim(p2,-1,0,0))/(2*h(1)) + ...
+    (transim(p3,1,0,0)-transim(p3,-1,0,0))/(2*h(1)) + ...
     ...
-    (transim(p4,0,1,0)-transim(p4,0,-1,0))/(2*hy) + ...
-    (p5-transim(p5,0,-1,0))/hy + ...
-    (transim(p6,0,1,0)-transim(p6,0,-1,0))/(2*hy) + ...    
+    (transim(p4,0,1,0)-transim(p4,0,-1,0))/(2*h(2)) + ...
+    (p5-transim(p5,0,-1,0))/h(2) + ...
+    (transim(p6,0,1,0)-transim(p6,0,-1,0))/(2*h(2)) + ...    
     ...
-    (transim(p7,0,0,1)-transim(p7,0,0,-1))/(2*hz) + ...
-    (transim(p8,0,0,1)-transim(p8,0,0,-1))/(2*hz) + ...
-    (p9-transim(p9,0,0,-1))/hz;
+    (transim(p7,0,0,1)-transim(p7,0,0,-1))/(2*h(3)) + ...
+    (transim(p8,0,0,1)-transim(p8,0,0,-1))/(2*h(3)) + ...
+    (p9-transim(p9,0,0,-1))/h(3);
 
 
 %----------------------------------------------------
 
-function [u] = filter2d(u,kappa,dt,niter,prm)
+function [u] = filter2d(u,kappa,dt,niter,h)
 
-hx = prm.h(1);
-hy = prm.h(2);
-hz = prm.h(3);
 
 % iterate
 filt = fspecial('gaussian',3,1);
 for i = 1 : niter
 
-%     [Rx Ry Rz] = derivcentr3(u,hx,hy,hz);
-    [Rx Ry] = gradient(u,hx,hy);
+%     [Rx Ry Rz] = derivcentr3(u,h(1),h(2),h(3));
+    [Rx Ry] = gradient(u,h(1),h(2));
     Rx = imfilter(Rx,filt,'replicate');
     Ry = imfilter(Ry,filt,'replicate');
     

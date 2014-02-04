@@ -42,6 +42,10 @@ if nargin == 4
     gpu = varargin{4};
 end;
 
+msg = ['This is ' mfilename ' using settings'];
+disp(msg);
+printstructscreen(prm);
+
 % dimxy = 3;
 dim = size(im);
 if numel(dim) == 2

@@ -104,6 +104,7 @@ prm.gpu = 0;
 
 % correct illumination
 prm.illum = 0;
+prm.illumdiameter = 25;
 
 
 %
@@ -288,11 +289,14 @@ prm.smoothim.gpu = prm.gpu;
 if prm.illum
     msg = ['Correcting uneven illumination'];
     disp(msg);
-    se = strel('disk',12);
-    imsegm = imtophat(imsegm,se);
+    se = strel('disk',prm.illumdiameter);
+    a = imopen(imsegm,se);
+    imsegm = imsegm - a;    
     if isequal(prm.getminima.method,'nucleus')    
-        imnucl = imtophat(imnucl,se);
+        a = imopen(imsegm,se);
+        imnucl = imnucl - a;        
     end;
+    clear a;
 end;
 
 %

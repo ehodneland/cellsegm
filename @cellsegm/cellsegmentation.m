@@ -184,7 +184,6 @@ printstructscreen(prm);
 
 % from command line, these have priority
 prm = mergeinputpar(prm,prmincmd);
-
 if numel(prm.segmstart) == 1
     prm.segmstart = prm.segmstart*ones(prm.nstacks,nfolder);
 end;
@@ -349,6 +348,9 @@ end%for
 function [cellbw,wat,imsegm,minima,minimacell,info] = segmsurfhere(imsegm,imnucl,prm)
 
 dim = size(imsegm);
+if numel(dim) == 2
+    dim = [dim 1];
+end;
 
 % nucleus channel for markers
 if isequal(prm.segmsurf.getminima.method,'nucleus') 

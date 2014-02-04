@@ -72,8 +72,6 @@ function [cellbw,wat,imsegm,prmout] = segmct(varargin)
 msg = ['This is ' upper(mfilename) ' for segmentation of cytoplasmically stained cells'];
 disp(msg);
 
-vis = 0;
-
 im = varargin{1};
 minvolfull = 1000*varargin{2};
 maxvolfull = 1000*varargin{3};
@@ -176,6 +174,7 @@ if prm.illum
     im = imtophat(im,se);
 end;
 
+
 %
 % Smoothing
 %
@@ -211,7 +210,7 @@ if isequal(prm.method,'thrs')
 %     [cellbw,wat] = segmgrad(im,prm);
 elseif isequal(prm.method,'adth')
     % adpative thresholding
-    prmin = prm.adth;
+    prmin.adth = prm.adth;
     prmin.h = prm.h;
     prmin.minvolvox = prm.minvolvox;
     prmin.maxvolvox = prm.maxvolvox;
@@ -520,7 +519,7 @@ end;
 % expected cell volume
 function [cellbw,wat] = segmthrs(im,prm,conn)
 
-vis = 0;
+vis = 1;
 
 % [M N O] = size(im);
 dim = size(im);
@@ -534,12 +533,14 @@ im = uint8(im);
 cellbw = zeros(size(im));
 % cellbwold = cellbw;
 
-th = 2;
+th = 3;
+c = graythresh(im);
 % interatively until we reach the given threshold
 while 1
-    level = th*graythresh(im);
-    % IA dd this since hte crasched when level > 1, which can happen
-    level = min(level,0.5);
+    level = th*c;
+
+    % I added this since it crasched when level > 1, which can happen
+    level = min(level,0.99);
     
     for i = 1 : dim(3)
         cellbw(:,:,i) = im2bw(im(:,:,i),level);

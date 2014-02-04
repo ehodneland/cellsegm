@@ -40,7 +40,8 @@ prm.h = varargin{5};
 prm.vis = 0;
 prm.visit = 10;
 
-msg = ['This is ' mfilename ' using settings'];
+msg = ['This is ' upper(mfilename) ' using settings'];
+disp(msg);
 printstructscreen(prm);
 
 
@@ -53,15 +54,15 @@ printstructscreen(prm);
 % filter image
 if O == 1
     disp('2D edge enhancing diffusion')
-    u = filter2d(u,prm.kappa,prm.dt,prm.maxniter,prm.h);
+    u = filter2d(u,prm.kappa,prm.dt,prm.maxniter,prm.h,prm);
 elseif O >= 2
     disp('3D edge enhancing diffusion')    
-    u = filter3d(u,prm.kappa,prm.dt,prm.maxniter,prm.h);
+    u = filter3d(u,prm.kappa,prm.dt,prm.maxniter,prm.h,prm);
 end;
 
 %-------------------------------------------------
 
-function [u] = filter3d(u,kappa,dt,niter,h)
+function [u] = filter3d(u,kappa,dt,niter,h,prm)
 
 
 filt = gaussian(3,1,1);
@@ -206,7 +207,7 @@ r = ...
 
 %----------------------------------------------------
 
-function [u] = filter2d(u,kappa,dt,niter,h)
+function [u] = filter2d(u,kappa,dt,niter,h,prm)
 
 
 % iterate

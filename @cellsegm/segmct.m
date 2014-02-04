@@ -84,6 +84,7 @@ prm.smoothim.method = 'gaussian';
 
 % illumination correction
 prm.illum = 0;
+prm.illumdiameter = 25;
 
 %
 % Iterative threshold
@@ -170,8 +171,10 @@ im = scale(im);
 if prm.illum
     msg = ['Correcting uneven illumination'];
     disp(msg);
-    se = strel('disk',25);
-    im = imtophat(im,se);
+    se = strel('disk',prm.illumdiameter);
+    a = imopen(im,se);
+    im = im - a;
+    clear a;
 end;
 
 
@@ -595,15 +598,10 @@ end;
 % Fill holes
 %
 disp('Fill holes')
-for i = 1 : dim(3)
-    a = cellbw(:,:,i);
-    [faser,L] = bwlabeln(a);
-    for j = 1 : L
-        reg = faser == j;
-        reg = imfill(reg,'holes');
-        a(reg == 1) = 1;
-    end;    
-    cellbw(:,:,i) = a;
+low = 0;
+high = (0.1*prm.minvolvox/dim(3));
+for i = 1 : dim(3)    
+    cellbw(:,:,i) = fillholes(cellbw(:,:,i),low,high,4);
 end;
 
 if vis == 1
@@ -611,8 +609,10 @@ if vis == 1
     showall(im,cellbw);
 end;
 
-% load ball1;se = getball(ball,1,1);
-% cellbw = imerode(cellbw,se);
+if prm.minvolvox > 100
+    load ball1;se = getball(ball,1,1);
+    cellbw = imerode(cellbw,se);
+end;
 
 % must do a opening to disconnect
 v = min(round(prm.minvolvox/200),7);
@@ -640,7 +640,6 @@ disp(msg);
 
 % output watershed image
 [wat,Lwat] = bwlabeln(cellbw);
-
 
 if vis == 1
     disp('Final')

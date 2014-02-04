@@ -188,7 +188,7 @@ disp(msg);
 %
 
 if isequal(prm.method,'manual')
-    msg = ['Using manually defined cell markers'];
+    msg = ['Using MANUAL method for cell markers'];
     disp(msg);
     
     % get background
@@ -199,7 +199,7 @@ if isequal(prm.method,'manual')
     
 elseif isequal(prm.method,'nucleus')  
     
-    msg = ['Using nucleus method for markers'];
+    msg = ['Using NUCLEUS method for markers'];
     disp(msg);
     
     % add nucleus information    
@@ -228,7 +228,7 @@ elseif isequal(prm.method,'nucleus')
 %         showall(minima,minimabck)
 elseif isequal(prm.method,'automated')
     
-    msg = ['Using automated method for markers'];
+    msg = ['Using AUTOMATED method for markers'];
     disp(msg);
 
     try
@@ -467,7 +467,7 @@ end;
 function [minima,prm] = automated(im,prm)
 
 
-vis = 0;
+vis = 1;
 
 dim = size(im);
 
@@ -478,6 +478,14 @@ imhere = im(:,:,prm.plane);
 
 % connectivity
 conn = 4;    
+
+msg = ['This is method AUTOMATED finding minima'];
+disp(msg);
+
+msg = ['Using settings'];
+disp(msg);
+printstructscreen(prm);
+
 
 % thresholding
 im = scale(im);
@@ -513,7 +521,7 @@ thim = constborder(thim,5,1);
 thimOld = thim;
 
 
-% iteratice closing
+% iterative closing
 for i = 0 : step : high
     
     thim = thimOld;
@@ -525,12 +533,10 @@ for i = 0 : step : high
 
     % fill each region
     [faser,L] = bwlabeln(thim,conn);  
-    
-    
-    % go back to the old version again
+        
     for j = 1 : L
         regHere = eq(faser,j);    
-%         [j L]
+
         % reduce to save time
         [regHereRed,box] = boundreg(regHere,1,0);
         [m n o] = size(regHereRed);
@@ -543,7 +549,6 @@ for i = 0 : step : high
         end;
 
         filledRed = bwareaopen(filledRed,prm.minvolvox,conn);
-        
         filledRed = filledRed - bwareaopen(filledRed,2*prm.maxvolvox,conn);              
         filledRed = logical(filledRed);
 

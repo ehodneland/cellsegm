@@ -67,6 +67,7 @@ if ~isempty(prm.invdiff)
 end;
 
 msg = ['This is ' mfilename ' using settings'];
+disp(msg);
 printstructscreen(prm);
 
 dim = size(u);

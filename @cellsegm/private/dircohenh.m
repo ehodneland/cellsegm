@@ -42,7 +42,7 @@ if nargin == 4
     gpu = varargin{4};
 end;
 
-msg = ['This is ' mfilename ' using settings'];
+msg = ['This is ' upper(mfilename) ' using settings'];
 disp(msg);
 printstructscreen(prm);
 

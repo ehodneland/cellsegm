@@ -1,10 +1,10 @@
 % EDGEENHDIFF Edge enhancing diffusion
 %
-%   EDGEENHDIFF(U,DT,MAXNITER,KAPPA) Performing edge enhancing diffusion 
-%   of image U using time step DT, MAXNITER number of iterations, and 
-%   conductivity KAPPA
+%   EDGEENHDIFF(U,DT,MAXNITER,KAPPA,H) Performing edge enhancing diffusion 
+%   of image U using time step DT, MAXNITER number of iterations, 
+%   conductivity KAPPA, and voxel size H.
 % 
-%   Ex: b = edgeenhdiff(im,0.2,100,10);show(im,1);
+%   Ex: b = edgeenhdiff(im,0.2,100,10,[1 1 3]);show(im,1);
 %
 %   Literature:
 %   Algorithms for non-linear diffusion, MATLAB in a literate programming
@@ -30,7 +30,13 @@
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
 %
-function [u] = edgeenhdiff( u, dt, maxniter, kappa)
+function [u] = edgeenhdiff(varargin)
+
+u = varargin{1};
+dt = varargin{2};
+maxniter = varargin{3};
+kappa = varargin{4};
+h = varargin{5};
 
 prm.vis = 0;
 prm.visit = 10;
@@ -40,9 +46,9 @@ prm.visit = 10;
 % NB Do not filter the original image!!!
 %
 
-prm.hx = 1;
-prm.hy = 1;
-prm.hz = 3;
+prm.hx = h(1);
+prm.hy = h(2);
+prm.hz = h(3);
 [M N O] = size(u);
 
 % filter image

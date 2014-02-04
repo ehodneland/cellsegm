@@ -156,11 +156,11 @@ elseif isequal(method,'eed')
     disp(msg);
     if prm.planewise
         for i = 1 : dim(3)
-            im(:,:,i) = edgeenhdiff(im(:,:,i),prm.eed.dt,prm.eed.maxniter,prm.eed.kappa);
+            im(:,:,i) = edgeenhdiff(im(:,:,i),prm.eed.dt,prm.eed.maxniter,prm.eed.kappa,prm.h);
         end;
     else
         % edge enhancing diffusion
-        im = edgeenhdiff(im,prm.eed.dt,prm.eed.maxniter,prm.eed.kappa);
+        im = edgeenhdiff(im,prm.eed.dt,prm.eed.maxniter,prm.eed.kappa,prm.h);
     end;
     
 elseif isequal(method,'gaussian')

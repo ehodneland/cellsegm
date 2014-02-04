@@ -33,22 +33,21 @@
 function [u] = edgeenhdiff(varargin)
 
 u = varargin{1};
-dt = varargin{2};
-maxniter = varargin{3};
-kappa = varargin{4};
-h = varargin{5};
-
+prm.dt = varargin{2};
+prm.maxniter = varargin{3};
+prm.kappa = varargin{4};
+prm.h = varargin{5};
 prm.vis = 0;
 prm.visit = 10;
+
+msg = ['This is ' mfilename ' using settings'];
+printstructscreen(prm);
 
 
 % 
 % NB Do not filter the original image!!!
 %
 
-prm.hx = h(1);
-prm.hy = h(2);
-prm.hz = h(3);
 [M N O] = size(u);
 
 % filter image
@@ -64,9 +63,9 @@ end;
 
 function [u] = filter3d(u,kappa,dt,niter,prm)
 
-hx = prm.hx;
-hy = prm.hy;
-hz = prm.hz;
+hx = prm.h(1);
+hy = prm.h(2);
+hz = prm.h(3);
 
 filt = gaussian(3,1,1);
 for i = 1 : niter
@@ -172,9 +171,9 @@ d31 = D.d31;
 d32 = D.d32;
 d33 = D.d33;
 
-hx = prm.hx;
-hy = prm.hy;
-hz = prm.hz;
+hx = prm.h(1);
+hy = prm.h(2);
+hz = prm.h(3);
 
 % function for computing div(D*grad(u))
 
@@ -212,9 +211,9 @@ r = ...
 
 function [u] = filter2d(u,kappa,dt,niter,prm)
 
-hx = prm.hx;
-hy = prm.hy;
-hz = prm.hz;
+hx = prm.h(1);
+hy = prm.h(2);
+hz = prm.h(3);
 
 % iterate
 filt = fspecial('gaussian',3,1);

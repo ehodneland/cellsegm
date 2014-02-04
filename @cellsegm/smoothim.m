@@ -156,7 +156,7 @@ elseif isequal(method,'eed')
     disp(msg);
     if prm.planewise
         for i = 1 : dim(3)
-            im(:,:,i) = edgeenhdiff(im(:,:,i),prm.eed.dt,prm.eed.maxniter,prm.eed.kappa,prm.h);
+            im(:,:,i) = edgeenhdiff(im(:,:,i),prm.eed.dt,prm.eed.maxniter,prm.eed.kappa,prm.h); 
         end;
     else
         % edge enhancing diffusion
@@ -167,8 +167,12 @@ elseif isequal(method,'gaussian')
     msg = ['Using Gaussian smoothing'];
     disp(msg);
     
+    msg = ['Using settings'];
+    disp(msg);    
+    printstructscreen(prm.gaussian);
+    
     if prm.planewise
-        filt = fspecial('gaussian',prm.gaussian.diameter,prm.gaussian.stdev);
+        filt = fspecial('gaussian',prm.gaussian.diameter,prm.gaussian.stdev);                
         for i = 1 : dim(3)
             im(:,:,i) = imfilter(im(:,:,i),filt,'replicate');
         end;

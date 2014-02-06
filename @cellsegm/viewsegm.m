@@ -75,7 +75,6 @@ plane = 1;
 % get username
 prm.username = char(java.lang.System.getProperty('user.name'));
 
-
 % % change size if necessary
 % p = get(fig.handle,'OuterPosition');
 
@@ -120,33 +119,26 @@ b = handle.control.h - 2*handle.button.h;
 w = handle.button.w;
 h = handle.button.h;
 handle.up.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Up', ...
-    'Position',[left b w h],'CallBack', ...
-    'global choice;choice = ''up'';uiresume(gcbf);');    
+    'Position',[left b w h],'CallBack',{@callbackup,handle});  
 b = b - h - 5;
 handle.down.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Down', ...
-    'Position',[left b w h],'CallBack', ...
-    'global choice;choice = ''down'';uiresume(gcbf);');    
+    'Position',[left b w h],'CallBack',{@callbackdown,handle});   
 b = b - h - 5;
 handle.next.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Next', ...
-    'Position',[left b w h],'CallBack', ...
-    'global choice;choice = ''next'';uiresume(gcbf);');    
+    'Position',[left b w h],'CallBack',{@callbacknext,handle});
 b = b - h - 5;
 handle.previous.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Previous', ...
-    'Position',[left b w h],'CallBack', ...
-    'global choice;choice = ''previous'';uiresume(gcbf);');    
+    'Position',[left b w h],'CallBack',{@callbackprevious,handle});
 b = b - h - 5;
 handle.frame.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Frame number', ...
-    'Position',[left b w h],'CallBack', ...
-    'global choice;choice = ''framenum'';uiresume(gcbf);');    
+    'Position',[left b w h],'CallBack',{@callbackframenum,handle});
 b = b - h - 5;
 handle.classification.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Classification', ...
-    'Position',[left b w h],'CallBack', ...
-    'global choice;choice = ''classification'';uiresume(gcbf);');    
+    'Position',[left b w h],'CallBack',{@callbackclassification,handle});
 % Delete/add cells permanently!
 b = b - h - 5;
 handle.cellstatus.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Cell status', ...
-    'Position',[left b w h],'CallBack', ...
-    'global choice;choice = ''cellstatus'';uiresume(gcbf);');    
+    'Position',[left b w h],'CallBack',{@callbackcellstatus,handle});
 
 
 % Image scale
@@ -178,23 +170,19 @@ for j = 1 : prm.nch
     c = c + 1;
     handle.imscale.checkbox(j).pos = [left+dw b handle.checkbox.w h];
     handle.imscale.checkbox(j).handle = uicontrol('Parent',handle.control.handle,'Style','Checkbox', ...
-         'Position',handle.imscale.checkbox(j).pos,'CallBack', ...
-        ['global choice;choice = 1;uiresume(gcbf);']);    
+         'Position',handle.imscale.checkbox(j).pos,'CallBack',{@callbackcheckboxscale,handle});    
     dw = dw + handle.checkbox.w;
     c = c + 1;
     handle.imscale.checkbox(j).editfield(1).pos = [left+dw b handle.editfield.w h];    
     handle.imscale.checkbox(j).editfield(1).handle = uicontrol('Parent',handle.control.handle,'Style','edit', ...
-        'Position',handle.imscale.checkbox(j).editfield(1).pos,'CallBack', ...
-        ['global choice;choice = 1;uiresume(gcbf);']); 
+        'Position',handle.imscale.checkbox(j).editfield(1).pos,'CallBack',{@callbackcheckboxscale,handle});
     
     dw = dw + handle.checkbox.w;
     c = c + 1;
     handle.imscale.checkbox(j).editfield(2).pos = [left+dw b handle.editfield.w h];
     handle.imscale.checkbox(j).editfield(2).handle = uicontrol('Parent',handle.control.handle,'Style','edit', ...
-        'Position',handle.imscale.checkbox(j).editfield(2).pos,'CallBack', ...
-        ['global choice;choice = 1;uiresume(gcbf);']);    
-    
-    
+        'Position',handle.imscale.checkbox(j).editfield(2).pos,'CallBack',{@callbackcheckboxscale,handle});
+        
 end;
 
 % Remove small cells
@@ -202,8 +190,7 @@ end;
 b = b - h - 5;
 dw = 0;
 handle.celldim.button.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Vol(mcm^3)', ...
-    'Position',[left b w h],'CallBack', ...
-    'global choice;choice = ''volume'';uiresume(gcbf);');    
+    'Position',[left b w h],'CallBack',{@callbackvolume,handle});  
 dw = dw + w;
 dw = dw + handle.checkbox.w;
 handle.celldim.editfield(1).handle = uicontrol('Parent',handle.control.handle,'Style','edit','String','100', ...
@@ -217,8 +204,7 @@ handle.celldim.editfield(2).handle = uicontrol('Parent',handle.control.handle,'S
 b = b - h - 5;
 dw = 0;
 handle.boundary.button.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Boundaries', ...
-    'Position',[left b w h],'CallBack', ...
-    'global choice;choice = ''boundary'';uiresume(gcbf);');    
+    'Position',[left b w h],'CallBack',{@callbackboundary,handle});
 dw = dw + w + handle.checkbox.w;
 handle.boundary.editfield.handle = uicontrol('Parent',handle.control.handle,'Style','edit','String','0.05', ...
     'Position',[left+dw b handle.editfield.w h]);    
@@ -227,13 +213,11 @@ handle.boundary.editfield.handle = uicontrol('Parent',handle.control.handle,'Sty
 b = b - h - 5;
 dw = 0;
 handle.draw.button.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Draw', ...
-    'Position',[left b w h],'CallBack', ...
-    'global choice;choice = ''draw'';uiresume(gcbf);');    
+    'Position',[left b w h],'CallBack',{@callbackdraw,handle});
 dw = dw + w;
 handle.draw.checkbox.pos = [left+dw b handle.checkbox.w h];
 handle.draw.checkbox.handle = uicontrol('Parent',handle.control.handle,'Style','Checkbox', ...
-         'Position',handle.draw.checkbox.pos,'CallBack', ...
-        'global choice;choice = ''drawim'';uiresume(gcbf);');    
+         'Position',handle.draw.checkbox.pos,'CallBack',{@callbackdrawim,handle});
 dw = dw + handle.checkbox.w;
 handle.draw.editfield.pos = [left+dw b handle.editfield.w h];
 handle.draw.editfield.handle = uicontrol('Parent',handle.control.handle,'Style','edit','String','1', ...
@@ -242,8 +226,7 @@ handle.draw.editfield.handle = uicontrol('Parent',handle.control.handle,'Style',
 % Quit
 b = b - h - 5;
 handle.quit.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Quit', ...
-    'Position',[left b w h],'CallBack', ...
-    'global choice;choice = ''quit'';uiresume(gcbf);');        
+    'Position',[left b w h],'CallBack',{@callbackquit,handle});  
 b = b - h - 5;
 handle.control.title.pos = [left b 4*w h];
 handle.control.title.handle = uicontrol('Parent',handle.control.handle,'Style','Text','String','Message field', ...
@@ -267,40 +250,48 @@ handle.up.plane.handle = uicontrol('Parent',handle.control.handle,'Style','Text'
     'Position',[left b w h]);
 
 % to save settings
-prm.pathsettings = fullfile(['~' prm.username],'.cellsegm');
+if isunix
+    prm.pathsettings = fullfile('home',prm.username,'.cellsegm');
+elseif ismac
+    prm.pathsettings = fullfile('Users',prm.username,'.cellsegm');
+elseif ispc
+    prm.pathsettings = fullfile('Documents and Settings',prm.username,'.cellsegm');
+end;
+prm.pathsettings = ['/' prm.pathsettings];
+
 if ~isdir(prm.pathsettings)
     mkdir(prm.pathsettings);
 end;
 prm.pathsettings = fullfile(prm.pathsettings,'settings.mat');
-
 
 % load last used settings
 if exist(prm.pathsettings,'file')
     msg = ['Loading previous settings'];
     disp(msg);
     D = load(prm.pathsettings);    
+    plane = D.plane;
     % list of handles
-    for i = 1 : prm.nch
+    for k = 1 : prm.nch
         for j = 1 : numel(D.handle.vis)
             % we have the same channel as in the settings file?
-            if D.handle.vis(j).ch == prm.vis(i).ch
+            if D.handle.vis(j).ch == prm.vis(k).ch
                 try
                     % set the two edit fields
-                    v = D.handle.imscale.checkbox(i).editfield(1).value;
+                    v = D.handle.imscale.checkbox(k).editfield(1).value;
                     set(handle.imscale.checkbox(i).editfield(1).handle,'String',v);
                 catch
                     
                 end;
                 try
-                    v = D.handle.imscale.checkbox(i).editfield(2).value;
-                    set(handle.imscale.checkbox(i).editfield(2).handle,'String',v);                    
+                    v = D.handle.imscale.checkbox(k).editfield(2).value;
+                    set(handle.imscale.checkbox(k).editfield(2).handle,'String',v);                    
                 catch
                     
                 end;
                 try
                     % set the checkbox
-                    v = D.handle.imscale.checkbox(i).value;
-                    set(handle.imscale.checkbox(i).handle,'Value',v);                    
+                    v = D.handle.imscale.checkbox(k).value;
+                    set(handle.imscale.checkbox(k).handle,'Value',v);                    
                 catch
                     
                 end;
@@ -424,22 +415,14 @@ while 1
 %     prm.draw = draw;
     handle = showimagecells(im,linedata,cellbwvis,wat,minima,prm,handle);
 
+    set(handle.fig.handle,'WindowKeyPressFcn',@callbackreading);
     
     % wait for user
-    k = waitforbuttonpress;
+    figure(handle.fig.handle);
+    %k = waitforbuttonpress;
+    uiwait(gcf);
     
-    % a kepress
-    if k == 1
-        curchar=get(gcf,'CurrentCharacter');
-        curchar = uint8(curchar);
-        if isequal(curchar,30);
-            choice = 'up';            
-        elseif isequal(curchar,31);
-            choice = 'down';            
-        end;
-    end;
-               
-    
+
     if isequal(choice,'up')
         plane = min(plane + 1,dim(3));
     elseif isequal(choice,'down')
@@ -520,17 +503,96 @@ while 1
         pathsave = prm.pathsettings;
         msg = ['Saving settings for VIEWSEGM in ' pathsave];
         disp(msg);
-        msg = ['To restore default settings delete ' pathsave];
+        msg = ['To restore default settings, delete ' pathsave];
         disp(msg);
         % visualization channels
         handle.vis = prm.vis;
-        save(pathsave,'handle');
+        save(pathsave,'handle','plane');
         break
     end;
     
     
 end;
 
+%-------------------------------------------
+function []  = callbackcheckboxscale(src,evnt,handle)
+global choice;
+choice = '';
+uiresume(handle.fig.handle);
+
+%-------------------------------------------
+function [] = callbackup(src,evnt,handle)
+global choice;
+choice = 'up';
+uiresume(handle.fig.handle);
+%-------------------------------------------
+function [] = callbackdown(src,evnt,handle)
+global choice;
+choice = 'down';
+uiresume(handle.fig.handle);
+%-------------------------------------------
+function [] = callbackprevious(src,evnt,handle)
+global choice;
+choice = 'previous';
+uiresume(handle.fig.handle);
+%-------------------------------------------
+function [] = callbacknext(src,evnt,handle)
+global choice;
+choice = 'next';
+uiresume(handle.fig.handle);
+%-------------------------------------------
+function [] = callbackframenum(src,evnt,handle)
+global choice;
+choice = 'framenum';
+uiresume(handle.fig.handle);
+%-------------------------------------------
+function [] = callbackclassification(src,evnt,handle)
+global choice;
+choice = 'classification';
+uiresume(handle.fig.handle);
+%-------------------------------------------
+function [] = callbackcellstatus(src,evnt,handle)
+global choice;
+choice = 'cellstatus';
+uiresume(handle.fig.handle);
+%--------------------------------------------
+function []  = callbackvolume(src,evnt,handle)
+global choice;
+choice = 'volume';
+uiresume(handle.fig.handle);
+%--------------------------------------------
+function []  = callbackdraw(src,evnt,handle)
+global choice;
+choice = 'volume';
+uiresume(handle.fig.handle);
+%--------------------------------------------
+function []  = callbackdrawim(src,evnt,handle)
+global choice;
+choice = 'volume';
+uiresume(handle.fig.handle);
+%--------------------------------------------
+function []  = callbackboundary(src,evnt,handle)
+global choice;
+choice = 'boundary';
+uiresume(handle.fig.handle);
+%--------------------------------------------
+function []  = callbackquit(src,evnt,handle)
+global choice;
+choice = 'quit';
+uiresume(handle.fig.handle);
+%--------------------------------------------
+function [] = callbackreading(src,evnt)
+global choice;
+switch(evnt.Key)
+    case 'uparrow'
+        choice = 'up';
+        uiresume(src);
+    case 'downarrow'
+        choice = 'down';
+        uiresume(src);
+    otherwise
+        choice = '';
+end
 %---------------------------------------------
 function [] = cellstatuscoordupdate(src,evnt,cellstatus,handlesubpl)
      
@@ -888,6 +950,7 @@ plane = min(prm.plane,prm.dim(3));
 plane = max(plane,1);
 
 % these planes
+implane = cell(prm.nch,1);
 for j = 1 : prm.nch
     implane{j} = im(:,:,plane,prm.vis(j).ch);
 end;
@@ -909,7 +972,7 @@ for j = 1 : prm.nch
             sc{j}(i) = prm.imscale(j).sc{i};
         end;
     end;
-        
+
     if sc{j}(2) <= sc{j}(1)
         warning('Cannot have high limit smaller than low, setting high');
         v = sc{j}(1) + 1;

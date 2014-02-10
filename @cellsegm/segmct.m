@@ -617,7 +617,7 @@ end;
 % must do a opening to disconnect
 v = min(round(prm.minvolvox/200),7);
 if v > 0
-    name = ['ball' v];load(name);
+    name = ['ball' int2str(v)];load(name);
     load ball7;se = getball(ball,7,1);
     cellbw = imopen(cellbw,se);
 end;

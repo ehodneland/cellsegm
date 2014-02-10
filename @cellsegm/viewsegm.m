@@ -83,7 +83,7 @@ handle.fig.h = 700;
 handle.fig.b = 100;
 handle.fig.l = 400;
 handle.fig.pos = [handle.fig.l handle.fig.b handle.fig.w handle.fig.h];
-handle.fig.handle = figure('Position',handle.fig.pos,'KeyReleaseFcn',@cb);
+handle.fig.handle = figure('Position',handle.fig.pos);
 
 
 % set(fig.handle,'Position',fig.pos);
@@ -96,9 +96,15 @@ handle.control.handle = figure('Position',handle.control.pos);
 % set(control.handle,'Position',control.pos);
 % set(fig.handle,'KeyPressFcn',@(h_obj,evt)disp(evt.Key));
 
+% draw image
+pos = [0 0 1200 1000];
+handle.draw.handle = figure('Position',pos,'WindowKeyPressFcn',@callbackreading);
+handle.draw.pos = pos;
+set(handle.draw.handle,'Visible','off');
+
+
 handle.checkbox.w = 50;
 handle.editfield.w = 50;
-% figure(fig.handle);
 set(handle.fig.handle,'Toolbar','figure');
 set(handle.control.handle,'Toolbar','figure');
 
@@ -215,9 +221,9 @@ dw = 0;
 handle.draw.button.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Draw', ...
     'Position',[left b w h],'CallBack',{@callbackdraw,handle});
 dw = dw + w;
-handle.draw.checkbox.pos = [left+dw b handle.checkbox.w h];
-handle.draw.checkbox.handle = uicontrol('Parent',handle.control.handle,'Style','Checkbox', ...
-         'Position',handle.draw.checkbox.pos,'CallBack',{@callbackdrawim,handle});
+% handle.draw.checkbox.pos = [left+dw b handle.checkbox.w h];
+% handle.draw.checkbox.handle = uicontrol('Parent',handle.control.handle,'Style','Checkbox', ...
+%          'Position',handle.draw.checkbox.pos,'CallBack',{@callbackdrawim,handle});
 dw = dw + handle.checkbox.w;
 handle.draw.editfield.pos = [left+dw b handle.editfield.w h];
 handle.draw.editfield.handle = uicontrol('Parent',handle.control.handle,'Style','edit','String','1', ...
@@ -300,7 +306,6 @@ if exist(prm.pathsettings,'file')
     end;
 end;
 
-
 while 1
     
     choice = '';
@@ -361,9 +366,6 @@ while 1
 
             % we have note removed or0 added any cells
             prm.boundarybw = 0;
-
-            % empty draw fig handle
-            handle.draw.handle = [];
             
             % number of lines
             cline = 0;
@@ -387,42 +389,40 @@ while 1
             continue;
         end;
         
+        % set figure size
+        set(handle.draw.handle,'Position',[500 0 dim(1) dim(2)]);
+        
     end;
     iold = i;        
-   
-         
+            
    % figure size in relation to screen
     scrsz = get(0,'ScreenSize');
     scrsz = scrsz(3:4);
     scrsz = scrsz-150;
-    maxw = scrsz(1);
-    maxh = scrsz(2);
+    prm.maxw = scrsz(1);
+    prm.maxh = scrsz(2);
     ratio = dim(2)/dim(1);
     if ratio > 1
-        w = maxw;
+        w = prm.maxw;
         h = w/ratio;
     elseif ratio <= 1
-        h = maxh;
+        h = prm.maxh;
         w = h*ratio;
     end;        
     handle.fig.w = w;
     handle.fig.h = h;
 
     % show images
-%     prm.fig = fig;
     prm.plane = plane;
     prm.dim = dim;   
-%     prm.draw = draw;
     handle = showimagecells(im,linedata,cellbwvis,wat,minima,prm,handle);
-
     set(handle.fig.handle,'WindowKeyPressFcn',@callbackreading);
     
     % wait for user
     figure(handle.fig.handle);
     %k = waitforbuttonpress;
     uiwait(gcf);
-    
-
+        
     if isequal(choice,'up')
         plane = min(plane + 1,dim(3));
     elseif isequal(choice,'down')
@@ -466,18 +466,11 @@ while 1
         
         % remove cells that are attached to the boundary
         [cellbwvis,boundarybw,prm] = callbckboundary(cellbwvis,prm,cellbw,volbw,handle);
-        
-        
-%     elseif isequal(choice,'drawch')
-%         v = get(draw.checkbox.handle,'String');
-%         if v == 1
-%             showimagedraw(im,draw,plane);
-%         end;
-        
+                        
     elseif isequal(choice,'draw')      
         
         % draw a line in the image
-        [linedata,cline] = callbckdraw(handle,cline,plane);
+        [linedata,cline] = callbckdraw(handle,cline,plane,im,linedata,prm);
         
     elseif isequal(choice,'quit')
         if prm.cellmod == 1
@@ -496,9 +489,9 @@ while 1
     if finish == 1
         close(handle.fig.handle);
         close(handle.control.handle);
-        if ~isempty(handle.draw.handle)
-            close(handle.draw.handle);
-        end;
+%         if ~isempty(handle.draw.handle)
+%             close(handle.draw.handle);
+%         end;
 
         pathsave = prm.pathsettings;
         msg = ['Saving settings for VIEWSEGM in ' pathsave];
@@ -563,12 +556,12 @@ uiresume(handle.fig.handle);
 %--------------------------------------------
 function []  = callbackdraw(src,evnt,handle)
 global choice;
-choice = 'volume';
+choice = 'draw';
 uiresume(handle.fig.handle);
 %--------------------------------------------
 function []  = callbackdrawim(src,evnt,handle)
 global choice;
-choice = 'volume';
+choice = 'draw';
 uiresume(handle.fig.handle);
 %--------------------------------------------
 function []  = callbackboundary(src,evnt,handle)
@@ -607,7 +600,7 @@ function [] = cellstatuscoordupdate(src,evnt,cellstatus,handlesubpl)
         
  %-------------------------------------------
  
- function [] = cellstatuscoordselect(src,evnt)
+ function [] = cellstatuscoordselect(src,evnt)     
  uiresume(src);
    
 %-----------------------------------------------
@@ -651,11 +644,6 @@ flag = cellbw(x,y,plane) == 1;
 if flag == 1
     cellbw(reg) = 0;
     cellbwvis(reg) = 0;
-%     show(cellbw(:,:,1),3)
-%     show(wat(:,:,1),4)
-%     a = wat == val;
-%     show(a(:,:,1),5)
-%     pause
 elseif flag == 0
     cellbw(reg) = 1;
     cellbwvis(reg) = 1;
@@ -681,18 +669,98 @@ elseif flag == 0
     info.classifycells.prop.manual(val) = 1;            
 end;
 
+%-------------------------------------------
+
+
+function [linedata,cline] = callbckdraw(handle,cline,plane,im,linedata,prm)
+
+% v = get(handle.draw.handle,'Visible');
+% if isequal(v,'off');
+set(handle.draw.handle,'Visible','on')
+% else isequal(v,'on');
+%     % do no more
+%     set(handle.draw.handle,'Visible','off');
+%     return;
+% end;
+
+% v = get(handle.draw.handle,'Position')
+% set(handle.draw.handle,'Position',v);
+
+% v = get(handle.draw.editfield.handle,'String');
+% v = str2double(v);
+% implane = im(:,:,plane,v);
+
+handle.draw = showimagedraw(im,handle.draw,plane);
+% 
+% minim = min(implane(:));
+% maxim = max(implane(:));
+% lim = [minim, maxim];
+% figure(handle.draw.handle);
+% imshow(implane,lim);colormap(gray);axis image;axis off;
+
+% pos = get(handle.draw.handle,'Position')
+
+% plot older lines
+for k = 1 : numel(linedata.x)
+    x = linedata.x{k};
+    y = linedata.y{k};
+    z = linedata.z{k};
+    if plane == z(1)
+        figure(handle.draw.handle);
+%         set(handle.draw.handle,'Position',pos);
+        line(y,x,'Color','g');                      
+    end;
+end;
+
+uistate = uisuspend(handle.draw.handle);
+% set(handle.draw.handle,'Units','pixels');
+c = 0;
+while 1
+    
+    set(handle.draw.handle,'WindowButtonMotionFcn',{@cellstatuscoordupdatedraw,handle});
+    set(handle.draw.handle,'pointer','Crosshair');
+    set(handle.draw.handle,'WindowButtonDownFcn',{@cellstatuscoordselect});
+%     set(handle.draw.handle,'pointer','Arrow');    
+    uiwait(handle.draw.handle);    
+    
+    v = round(get(handle.draw.button.handle,'UserData'));
+    
+    
+    if v(1) < 1 || v(2) < 1 || v(1) > prm.dim(1) || v(2) > prm.dim(2)
+        msg = ['You hit outside the image'];
+        disp(msg);
+        continue;
+    end;
+    c = c + 1;
+    
+    x(c,1) = v(1);y(c,1) = v(2);    
+    
+    if c == 2
+        break;
+    end;
+
+end;
+
+cline = cline + 1;
+linedata.x{cline} = x;
+linedata.y{cline} = y;            
+linedata.z{cline} = [plane; plane];            
+uirestore(uistate);
+
+set(handle.draw.handle,'Visible','off');
 
 %---------------------------------------------
-
-function [linedata,cline] = callbckdraw(handle,cline,plane)
-    
+function [] = cellstatuscoordupdatedraw(src,evnt,handle)
+     
 figure(handle.draw.handle);
-[x, y] = ginput(2);
-cline = cline + 1;
-linedata.x{cline} = round(x);
-linedata.y{cline} = round(y);            
-linedata.z{cline} = [plane; plane];            
+v = get(gca,'CurrentPoint');
+v = v(1,1:2);
+v = fliplr(v);
+v = round(v);
+set(handle.draw.button.handle,'UserData',v);
 
+% get(handle.draw.handle,'Position')
+ 
 %---------------------------------------------
 
 function [cellbwvis,boundarybw,prm] = callbckboundary(cellbwvis,prm,cellbw,volbw,handle)
@@ -729,7 +797,7 @@ cellbwvis(volbw == 1) = 0;
 function [cellbwvis,boundarybw,volbw,prm] = callbckvolume(cellbwvis,boundarybw,prm,cellbw,handle)
 
 dim = prm.dim;
-    
+
 % to use in boundary
 volbw = zeros(dim);
 
@@ -787,7 +855,7 @@ function [] = callbckclassification(handle,wat,info)
 
 % user defined input
 figure(handle.fig.handle);
-[y x] = ginput(1);
+[y, x] = ginput(1);
 x = round(x);
 y = round(y);
 val = wat(x,y);
@@ -831,21 +899,21 @@ end;
 function [draw] = showimagedraw(im,draw,plane)
 
 v = get(draw.editfield.handle,'String');
-try
+pos = get(draw.handle,'Position');
+% draw.pos = pos;
+pos
+
+% try
     v = str2double(v);
     v = round(v);    
-%     scrsz = get(0,'ScreenSize');
-    pos = [1000 100 1200 1200];
-    if isempty(draw.handle)
-        draw.handle = figure('Position',pos);
-    end;
     implane = im(:,:,plane,v);
     lim = [min(implane(:)) max(implane(:))];
-    draw.handle = figure(draw.handle);imshow(implane,lim);colormap(gray);axis image;axis off;
-catch
-    warning('Channel must be valid');
-    set(draw.editfield.handle,'');
-end;
+    figure(draw.handle);imshow(implane,lim);colormap(gray);axis image;axis off;
+    set(draw.handle,'Position',pos);
+% catch
+%     warning('Channel must be valid');
+%     set(draw.editfield.handle,'String','1');
+% end;
 
 %--------------------------------------------------------------------
 
@@ -863,28 +931,11 @@ end;
 %   'to see the result in the command window'});
 % 
 % %--------------------------------------------------
-
-function [] = cb(src,evnt)
-
-global ch;
-% if ~isempty(evnt.Modifier)
-%    for ii = 1:length(evnt.Modifier)
-%       out = sprintf('Character: %c\nModifier: %s\nKey: %s\n',evnt.Character,evnt.Modifier{ii},evnt.Key);
-%       disp(out)
-%    end
-% else
-%    out = sprintf('Character: %c\nModifier: %s\nKey: %s\n',evnt.Character,'No modifier key',evnt.Key);
-%    disp(out)
-% end
-ch = evnt.Key;
-% uiresume;
-
-%-------------------------------------------
       
 function [] = saveline(pathstack,linedata,prm)
 
 h = prm.h;
-[a b c] = fileparts(pathstack);
+[a,b,c] = fileparts(pathstack);
 pathsave = [a b '-line.mat'];
 msg = ['Saving line data ' pathsave];
 disp(msg);
@@ -1058,36 +1109,26 @@ for i = 1 : size(subpl.handle,1)
             z = linedata.z{k};
             if plane == z(1)
                 subplot(subpl.handle(i,j));
-                line(x,y,'Color','g');                      
+                line(y,x,'Color','g');                      
             end;
         end;
     end;
 end;
 
 % image to draw on
-v = get(handle.draw.checkbox.handle,'Value');
-v = double(v);
-% checkbox is on
-if v == 1
-    handle.draw = showimagedraw(im,handle.draw,plane);
-% checkbox is off
-elseif v == 0
-    if ~isempty(handle.draw.handle)
-        close(handle.draw.handle);
-    end;
-    handle.draw.handle = [];
-end
-
-if ~isempty(linedata.x)
+v = get(handle.draw.handle,'Visible');
+if isequal(v,'on')
+    % visible
+    handle.draw = showimagedraw(im,handle.draw,plane);    
     for k = 1 : numel(linedata.x)
         x = linedata.x{k};
         y = linedata.y{k};
         z = linedata.z{k};
         if plane == z(1)
             figure(handle.draw.handle);
-            line(x,y,'Color','g');                      
+            line(y,x,'Color','g');                      
         end;
-    end;    
+    end;
 end;
 
 

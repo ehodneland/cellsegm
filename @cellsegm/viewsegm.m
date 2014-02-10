@@ -98,7 +98,7 @@ handle.control.handle = figure('Position',handle.control.pos);
 
 % draw image
 pos = [0 0 1200 1000];
-handle.draw.handle = figure('Position',pos,'WindowKeyPressFcn',@callbackreading);
+handle.draw.handle = figure('Position',pos);
 handle.draw.pos = pos;
 set(handle.draw.handle,'Visible','off');
 
@@ -223,7 +223,8 @@ handle.draw.button.handle = uicontrol('Parent',handle.control.handle,'Style','Pu
 dw = dw + w;
 % handle.draw.checkbox.pos = [left+dw b handle.checkbox.w h];
 % handle.draw.checkbox.handle = uicontrol('Parent',handle.control.handle,'Style','Checkbox', ...
-%          'Position',handle.draw.checkbox.pos,'CallBack',{@callbackdrawim,handle});
+%          'Position',handle.draw.checkbox.pos,'CallBack',{@callbackdrawcheck,handle});
+% set(handle.draw.checkbox.handle,'Value',0);
 dw = dw + handle.checkbox.w;
 handle.draw.editfield.pos = [left+dw b handle.editfield.w h];
 handle.draw.editfield.handle = uicontrol('Parent',handle.control.handle,'Style','edit','String','1', ...
@@ -247,6 +248,9 @@ handle.cellstatus.coordx.handle = uicontrol('Parent',handle.control.handle,'Styl
     'Position',[left b w h]);
 left = left + w;
 handle.cellstatus.coordy.handle = uicontrol('Parent',handle.control.handle,'Style','Text','String','cursory', ...
+    'Position',[left b w h]);
+left = left + w;
+handle.cellstatus.watval.handle = uicontrol('Parent',handle.control.handle,'Style','Text','String','watval', ...
     'Position',[left b w h]);
 
 % Bottom line plane
@@ -372,6 +376,9 @@ while 1
             linedata.x = [];
             linedata.y = [];
             
+            % cellstatus
+            handle.cellstatus.value = [];
+            
             prm.voxelvol = prod(info.prm.h);
             clear D;
             msg = ['Image dimension: ', num2str(dim)];
@@ -417,10 +424,11 @@ while 1
     prm.dim = dim;   
     handle = showimagecells(im,linedata,cellbwvis,wat,minima,prm,handle);
     set(handle.fig.handle,'WindowKeyPressFcn',@callbackreading);
+%     set(handle.fig.handle,'WindowKeyPressFcn',@callbackreading);
     
     % wait for user
     figure(handle.fig.handle);
-    %k = waitforbuttonpress;
+
     uiwait(gcf);
         
     if isequal(choice,'up')
@@ -454,8 +462,8 @@ while 1
     elseif isequal(choice,'cellstatus')
                
         % change the cell status
-        [info,prm,cellbw,cellbwvis] = callbckcellstatus(wat,cellbw,cellbwvis,info,prm,handle,plane);
-        
+        [info,prm,cellbw,cellbwvis] = callbckcellstatus(wat,cellbw,cellbwvis,info,prm,handle,plane,linedata,im,minima);
+       
     elseif isequal(choice,'volume')
         
         % remove cells that are either below a threshold or above a
@@ -471,6 +479,11 @@ while 1
         
         % draw a line in the image
         [linedata,cline] = callbckdraw(handle,cline,plane,im,linedata,prm);
+        
+    elseif isequal(choice,'drawcheck')
+                
+        % draw the image to draw on
+        handle = callbckdrawcheck(handle,im,plane);
         
     elseif isequal(choice,'quit')
         if prm.cellmod == 1
@@ -489,9 +502,9 @@ while 1
     if finish == 1
         close(handle.fig.handle);
         close(handle.control.handle);
-%         if ~isempty(handle.draw.handle)
-%             close(handle.draw.handle);
-%         end;
+        if ~isempty(handle.draw.handle)
+            close(handle.draw.handle);
+        end;
 
         pathsave = prm.pathsettings;
         msg = ['Saving settings for VIEWSEGM in ' pathsave];
@@ -554,12 +567,12 @@ global choice;
 choice = 'volume';
 uiresume(handle.fig.handle);
 %--------------------------------------------
-function []  = callbackdraw(src,evnt,handle)
+function []  = callbackdrawcheck(src,evnt,handle)
 global choice;
-choice = 'draw';
+choice = 'drawcheck';
 uiresume(handle.fig.handle);
 %--------------------------------------------
-function []  = callbackdrawim(src,evnt,handle)
+function []  = callbackdraw(src,evnt,handle)
 global choice;
 choice = 'draw';
 uiresume(handle.fig.handle);
@@ -587,17 +600,45 @@ switch(evnt.Key)
         choice = '';
 end
 %---------------------------------------------
-function [] = cellstatuscoordupdate(src,evnt,cellstatus,handlesubpl)
+function [] = cellstatuscoordupdate(src,evnt,handle,handlesubpl,wat,plane,linedata,im,cellbw,minima,prm)
      
- v = get(handlesubpl,'CurrentPoint');
+v = get(handlesubpl,'CurrentPoint');
+w2 = round(v(1,1));
+w1 = round(v(1,2));
+v1 = num2str(w1);
+v2 = num2str(w2);
+set(handle.cellstatus.coordx.handle,'String',v1);
+set(handle.cellstatus.coordy.handle,'String',v2);
+set(handle.cellstatus.coordx.handle,'UserData',w1);
+set(handle.cellstatus.coordy.handle,'UserData',w2);
+try
+    value = wat(w1,w2,plane);
+catch
+    value = []; 
+end;
+% valueold = get(handle.cellstatus.watval.handle,'UserData');
+valueold = get(handle.cellstatus.watval.handle,'String');
+valueold = str2double(valueold);
+if ne(valueold,value)
+    if ~isequal(value,0)
+        cellbwplane = cellbw(:,:,plane);       
 
- v2 = num2str(v(1,1));
- v1 = num2str(v(1,2));
- set(cellstatus.coordx.handle,'String',v1);
- set(cellstatus.coordy.handle,'String',v2);
- set(cellstatus.coordx.handle,'UserData',v(1,1));
- set(cellstatus.coordy.handle,'UserData',v(1,2));
-        
+        % cellbw image
+        watplane = wat(:,:,plane);
+        cellbwplane(watplane == 0) = 0.5;
+        if ~isempty(value)
+            cellbwplane(watplane == value) = 0.5;
+        end;
+        figure(handle.fig.handle);
+        subplot('Position',handle.subpl.pos{2,end},'Parent',handle.fig.handle);
+        imagesc(cellbwplane);colormap(gray);drawnow;axis off;axis image;
+        axis image;title('Found cells');
+    end;
+end;
+
+set(handle.cellstatus.watval.handle,'String',num2str(value));
+% set(handle.cellstatus.watval.handle,'UserData',value);
+
  %-------------------------------------------
  
  function [] = cellstatuscoordselect(src,evnt)     
@@ -605,20 +646,20 @@ function [] = cellstatuscoordupdate(src,evnt,cellstatus,handlesubpl)
    
 %-----------------------------------------------
 
-function [info,prm,cellbw,cellbwvis] = callbckcellstatus(wat,cellbw,cellbwvis,info,prm,handle,plane)
+function [info,prm,cellbw,cellbwvis] = callbckcellstatus(wat,cellbw,cellbwvis,info,prm,handle,plane,linedata,im,minima)
 
 
 h = handle.fig.handle;                    
 uistate = uisuspend(h);
-set(h,'WindowButtonMotionFcn',{@cellstatuscoordupdate,handle.cellstatus,handle.subpl.handle(1,1)});
+set(h,'WindowButtonMotionFcn',{@cellstatuscoordupdate,handle,handle.subpl.handle(1,1),wat,plane,linedata,im,cellbw,minima,prm});
 set(h,'pointer','Crosshair');
 set(h,'WindowButtonDownFcn',{@cellstatuscoordselect});
 uiwait(h);
 set(h,'pointer','Arrow');
-
 uirestore(uistate);
-y = round(get(handle.cellstatus.coordx.handle,'UserData'));
-x = round(get(handle.cellstatus.coordy.handle,'UserData'));
+
+x = round(get(handle.cellstatus.coordx.handle,'UserData'));
+y = round(get(handle.cellstatus.coordy.handle,'UserData'));
 
 if x < 1 || y < 1 || x > prm.dim(1) || y > prm.dim(2)
     msg = ['You hit outside the image'];
@@ -626,7 +667,7 @@ if x < 1 || y < 1 || x > prm.dim(1) || y > prm.dim(2)
     return;
 end;
 
-val = wat(x,y);
+val = wat(x,y,plane);
 
 % this is a boundary of a cell, try again
 if val == 0
@@ -648,6 +689,7 @@ elseif flag == 0
     cellbw(reg) = 1;
     cellbwvis(reg) = 1;
 end;
+
 % add a column with manual removal in the info struct
 if ~ismember('manual',info.classifycells.propname) 
     info.classifycells.propname = [info.classifycells.propname {'manual'}];
@@ -671,17 +713,36 @@ end;
 
 %-------------------------------------------
 
+function [handle] = callbckdrawcheck(handle,im,plane)
+
+v = get(handle.draw.checkbox.handle,'Value');
+% v
+% pause
+% v = get(handle.draw.checkbox.handle,'Value');
+% v
+if v == 1
+    showimagedraw(im,handle.draw,plane);
+else
+    set(handle.draw.handle,'Visible','off');
+end;
+% if v == 0
+%     set(handle.draw.checkbox.handle,'Value',1);    
+% elseif v == 1
+%     set(handle.draw.checkbox.handle,'Value',0);
+% end;
+
+%-------------------------------------------
 
 function [linedata,cline] = callbckdraw(handle,cline,plane,im,linedata,prm)
 
-% v = get(handle.draw.handle,'Visible');
-% if isequal(v,'off');
-set(handle.draw.handle,'Visible','on')
-% else isequal(v,'on');
-%     % do no more
-%     set(handle.draw.handle,'Visible','off');
-%     return;
-% end;
+v = get(handle.draw.handle,'Visible');
+if isequal(v,'off');
+    set(handle.draw.handle,'Visible','on')
+else isequal(v,'on');
+    % do no more
+    set(handle.draw.handle,'Visible','off');
+    return;
+end;
 
 % v = get(handle.draw.handle,'Position')
 % set(handle.draw.handle,'Position',v);
@@ -690,8 +751,9 @@ set(handle.draw.handle,'Visible','on')
 % v = str2double(v);
 % implane = im(:,:,plane,v);
 
-handle.draw = showimagedraw(im,handle.draw,plane);
-% 
+% handle.draw = showimagedraw(im,handle.draw,plane);
+showimagedraw(im,handle.draw,plane);
+ 
 % minim = min(implane(:));
 % maxim = max(implane(:));
 % lim = [minim, maxim];
@@ -747,7 +809,7 @@ linedata.y{cline} = y;
 linedata.z{cline} = [plane; plane];            
 uirestore(uistate);
 
-set(handle.draw.handle,'Visible','off');
+% set(handle.draw.handle,'Visible','off');
 
 %---------------------------------------------
 function [] = cellstatuscoordupdatedraw(src,evnt,handle)
@@ -896,12 +958,10 @@ end;
 %---------------------------------------------
 
 
-function [draw] = showimagedraw(im,draw,plane)
+function [] = showimagedraw(im,draw,plane)
 
 v = get(draw.editfield.handle,'String');
-pos = get(draw.handle,'Position');
-% draw.pos = pos;
-pos
+% pos = get(draw.handle,'Position');
 
 % try
     v = str2double(v);
@@ -909,7 +969,7 @@ pos
     implane = im(:,:,plane,v);
     lim = [min(implane(:)) max(implane(:))];
     figure(draw.handle);imshow(implane,lim);colormap(gray);axis image;axis off;
-    set(draw.handle,'Position',pos);
+%     set(draw.handle,'Position',pos);
 % catch
 %     warning('Channel must be valid');
 %     set(draw.editfield.handle,'String','1');
@@ -1034,8 +1094,10 @@ for j = 1 : prm.nch
     end;
     
     figure(handle.fig.handle);
+    
     subpl.handle(1,j) = subplot('Position',pos{j},'Parent',handle.fig.handle);imshow(implane{j},sc{j});
     colormap(gray);drawnow;axis off;axis image;
+    subpl.pos{1,j} = pos{j};
     if isequal(prm.vis(j).ch,'imsegm')
         axis image;title(['Channel ' prm.vis(j).ch])
     else
@@ -1087,17 +1149,24 @@ for j = 1 : prm.nch-1
     p(2) = 0.01;
     subpl.handle(2,j) = subplot('Position',p,'Parent',handle.fig.handle);imagesc(rgboverlayplane);colormap(gray);drawnow;axis off;axis image;
     axis image;title('Overlay image, markers (blue), segmentation (red)');    
-    
+    subpl.pos{2,j} = p;
 end;
 
 % cellbw image
 watplane = wat(:,:,plane);
 cellbwplane(watplane == 0) = 0.5;
+
 p = pos{end};
 p(2) = 0.01;
+% value = get(handle.cellstatus.watval.handle,'String');
+% value = str2double(value);
+% if ~isempty(value)
+%     cellbwplane(watplane == value) = 0.5;
+% end;
 figure(handle.fig.handle);
 subpl.handle(2,end) = subplot('Position',p,'Parent',handle.fig.handle);imagesc(cellbwplane);colormap(gray);drawnow;axis off;axis image;
 axis image;title('Found cells');
+subpl.pos{2,end} = p;
 handle.subpl = subpl;
 
 % make lines
@@ -1119,7 +1188,8 @@ end;
 v = get(handle.draw.handle,'Visible');
 if isequal(v,'on')
     % visible
-    handle.draw = showimagedraw(im,handle.draw,plane);    
+%     handle.draw = showimagedraw(im,handle.draw,plane);    
+    showimagedraw(im,handle.draw,plane);    
     for k = 1 : numel(linedata.x)
         x = linedata.x{k};
         y = linedata.y{k};

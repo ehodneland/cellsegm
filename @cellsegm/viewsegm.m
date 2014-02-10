@@ -619,24 +619,33 @@ end;
 % valueold = get(handle.cellstatus.watval.handle,'UserData');
 valueold = get(handle.cellstatus.watval.handle,'String');
 valueold = str2double(valueold);
+    
+% when to draw?
+draw = 0;
 if ne(valueold,value)
     if ~isequal(value,0)
-        cellbwplane = cellbw(:,:,plane);       
-
-        % cellbw image
-        watplane = wat(:,:,plane);
-        cellbwplane(watplane == 0) = 0.5;
-        if ~isempty(value)
-            cellbwplane(watplane == value) = 0.5;
-        end;
-        figure(handle.fig.handle);
-        subplot('Position',handle.subpl.pos{2,end},'Parent',handle.fig.handle);
-        imagesc(cellbwplane);colormap(gray);drawnow;axis off;axis image;
-        axis image;title('Found cells');
+        draw = 1;
     end;
+end;
+if isnumeric(valueold) && isempty(value)
+    draw = 1;
+end;
+if draw
+    % cellbw image
+    cellbwplane = cellbw(:,:,plane);           
+    watplane = wat(:,:,plane);
+    cellbwplane(watplane == 0) = 0.5;
+    if ~isempty(value)
+        cellbwplane(watplane == value) = 0.5;
+    end;
+    figure(handle.fig.handle);
+    subplot('Position',handle.subpl.pos{2,end},'Parent',handle.fig.handle);
+    imagesc(cellbwplane);axis off;colormap(gray);drawnow;axis image;
+    axis image;title('Found cells');
 end;
 
 set(handle.cellstatus.watval.handle,'String',num2str(value));
+% get(handle.cellstatus.watval.handle,'String')
 % set(handle.cellstatus.watval.handle,'UserData',value);
 
  %-------------------------------------------

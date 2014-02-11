@@ -96,11 +96,6 @@ handle.control.handle = figure('Position',handle.control.pos);
 % set(control.handle,'Position',control.pos);
 % set(fig.handle,'KeyPressFcn',@(h_obj,evt)disp(evt.Key));
 
-% draw image
-pos = [0 0 1200 1000];
-handle.draw.handle = figure('Position',pos);
-handle.draw.pos = pos;
-set(handle.draw.handle,'Visible','off');
 
 
 handle.checkbox.w = 50;
@@ -219,7 +214,7 @@ handle.boundary.editfield.handle = uicontrol('Parent',handle.control.handle,'Sty
 b = b - h - 5;
 dw = 0;
 handle.draw.button.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Draw', ...
-    'Position',[left b w h],'CallBack',{@callbackdraw,handle});
+    'Position',[left b w h],'CallBack',{@callbackdrawim,handle});
 dw = dw + w;
 % handle.draw.checkbox.pos = [left+dw b handle.checkbox.w h];
 % handle.draw.checkbox.handle = uicontrol('Parent',handle.control.handle,'Style','Checkbox', ...
@@ -309,6 +304,18 @@ if exist(prm.pathsettings,'file')
         end;
     end;
 end;
+
+% draw image
+pos = [0 0 1200 1000];
+handle.draw.handle = figure('Position',pos);
+handle.draw.pos = pos;
+set(handle.draw.handle,'Visible','off');
+set(handle.draw.handle,'WindowButtonMotionFcn',{@drawcoordupdate,handle});
+set(handle.draw.handle,'pointer','Crosshair');
+set(handle.draw.handle,'WindowButtonDownFcn',{@drawcoordselect,handle});
+%uiwait(h);
+%set(h,'pointer','Arrow');
+%uirestore(uistate);
 
 while 1
     
@@ -427,9 +434,8 @@ while 1
 %     set(handle.fig.handle,'WindowKeyPressFcn',@callbackreading);
     
     % wait for user
-    figure(handle.fig.handle);
-
-    uiwait(gcf);
+%     figure(handle.fig.handle);
+    uiwait(handle.fig.handle);
         
     if isequal(choice,'up')
         plane = min(plane + 1,dim(3));
@@ -475,15 +481,15 @@ while 1
         % remove cells that are attached to the boundary
         [cellbwvis,boundarybw,prm] = callbckboundary(cellbwvis,prm,cellbw,volbw,handle);
                         
-    elseif isequal(choice,'draw')      
+    elseif isequal(choice,'drawim')      
         
         % draw a line in the image
-        [linedata,cline] = callbckdraw(handle,cline,plane,im,linedata,prm);
+        handle = callbckdrawim(handle,plane,im);
         
-    elseif isequal(choice,'drawcheck')
+    elseif isequal(choice,'drawselect')
                 
         % draw the image to draw on
-        handle = callbckdrawcheck(handle,im,plane);
+        [handle,linedata,cline] = callbckdrawselect(handle,linedata,plane,cline);
         
     elseif isequal(choice,'quit')
         if prm.cellmod == 1
@@ -567,14 +573,14 @@ global choice;
 choice = 'volume';
 uiresume(handle.fig.handle);
 %--------------------------------------------
-function []  = callbackdrawcheck(src,evnt,handle)
-global choice;
-choice = 'drawcheck';
-uiresume(handle.fig.handle);
+% function []  = callbackdrawcheck(src,evnt,handle)
+% global choice;
+% choice = 'drawcheck';
+% uiresume(handle.fig.handle);
 %--------------------------------------------
-function []  = callbackdraw(src,evnt,handle)
+function []  = callbackdrawim(src,evnt,handle)
 global choice;
-choice = 'draw';
+choice = 'drawim';
 uiresume(handle.fig.handle);
 %--------------------------------------------
 function []  = callbackboundary(src,evnt,handle)
@@ -620,7 +626,7 @@ end;
 valueold = get(handle.cellstatus.watval.handle,'String');
 valueold = str2double(valueold);
     
-% when to draw?
+% when to draw a gray cell?
 draw = 0;
 if ne(valueold,value)
     if ~isequal(value,0)
@@ -653,6 +659,7 @@ set(handle.cellstatus.watval.handle,'String',num2str(value));
  function [] = cellstatuscoordselect(src,evnt)     
  uiresume(src);
    
+ 
 %-----------------------------------------------
 
 function [info,prm,cellbw,cellbwvis] = callbckcellstatus(wat,cellbw,cellbwvis,info,prm,handle,plane,linedata,im,minima)
@@ -722,27 +729,43 @@ end;
 
 %-------------------------------------------
 
-function [handle] = callbckdrawcheck(handle,im,plane)
-
-v = get(handle.draw.checkbox.handle,'Value');
-% v
-% pause
+% function [handle] = callbckdrawcheck(handle,im,plane)
+% 
 % v = get(handle.draw.checkbox.handle,'Value');
-% v
-if v == 1
-    showimagedraw(im,handle.draw,plane);
-else
-    set(handle.draw.handle,'Visible','off');
-end;
+% % v
+% % pause
+% % v = get(handle.draw.checkbox.handle,'Value');
+% % v
+% if v == 1
+%     showimagedraw(im,handle.draw,plane);
+% else
+%     set(handle.draw.handle,'Visible','off');
+% end;
 % if v == 0
 %     set(handle.draw.checkbox.handle,'Value',1);    
 % elseif v == 1
 %     set(handle.draw.checkbox.handle,'Value',0);
 % end;
 
+%--------------------------------------
+
+function [] = drawcoordupdate(src,evnt,handle)
+
+figure(handle.draw.handle);
+v = get(gca,'CurrentPoint');
+w2 = round(v(1,1));
+w1 = round(v(1,2));
+v1 = num2str(w1);
+v2 = num2str(w2);
+
+set(handle.cellstatus.coordx.handle,'String',v1);
+set(handle.cellstatus.coordy.handle,'String',v2);
+set(handle.cellstatus.coordx.handle,'UserData',w1);
+set(handle.cellstatus.coordy.handle,'UserData',w2);
+
 %-------------------------------------------
 
-function [linedata,cline] = callbckdraw(handle,cline,plane,im,linedata,prm)
+function [handle] = callbckdrawim(handle,plane,im)
 
 v = get(handle.draw.handle,'Visible');
 if isequal(v,'off');
@@ -760,9 +783,12 @@ end;
 % v = str2double(v);
 % implane = im(:,:,plane,v);
 
+
 % handle.draw = showimagedraw(im,handle.draw,plane);
 showimagedraw(im,handle.draw,plane);
  
+return;
+
 % minim = min(implane(:));
 % maxim = max(implane(:));
 % lim = [minim, maxim];
@@ -821,14 +847,37 @@ uirestore(uistate);
 % set(handle.draw.handle,'Visible','off');
 
 %---------------------------------------------
-function [] = cellstatuscoordupdatedraw(src,evnt,handle)
+
+function [] = drawcoordselect(src,evnt,handle)     
+
+global choice;
+choice = 'drawselect';
+uiresume(handle.fig.handle);
+ 
+ %-------------------------------------------
+ 
+function [handle,linedata,cline] = callbckdrawselect(handle,linedata,plane,cline)
      
 figure(handle.draw.handle);
 v = get(gca,'CurrentPoint');
 v = v(1,1:2);
 v = fliplr(v);
 v = round(v);
-set(handle.draw.button.handle,'UserData',v);
+vold = get(handle.draw.button.handle,'UserData');
+if ~isempty(vold)
+    cline = cline + 1;
+    linedata.x{cline}(1,1) = vold(1);
+    linedata.x{cline}(2,1) = v(1);
+    linedata.y{cline}(1,1) = vold(2);
+    linedata.y{cline}(2,1) = v(2);
+    linedata.z{cline}(1,1) = plane;
+    linedata.z{cline}(2,1) = plane;
+    set(handle.draw.button.handle,'UserData','');    
+else
+    set(handle.draw.button.handle,'UserData',v);
+end;
+
+% get(handle.draw.button.handle,'UserData')
 
 % get(handle.draw.handle,'Position')
  

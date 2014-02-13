@@ -467,7 +467,7 @@ end;
 function [minima,prm] = automated(im,prm)
 
 
-vis = 1;
+vis = 0;
 
 dim = size(im);
 

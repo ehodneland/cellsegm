@@ -149,7 +149,7 @@ prm.classifycells.method = 'threshold';
 %
 
 % To test intensity of wat lines; merging
-prm.mergefragments.merging = 0;
+prm.merge = 0;
 
 % methods for merging
 prm.mergefragments.optlog = 2;
@@ -375,7 +375,7 @@ Iimpose = imimposemin(imsegm,minima);
 wat = watershed(Iimpose);
 clear Iimpose
 
-if prm.watmerging == 1
+if prm.mergeregions == 1
     % Test the significance of watershed lines, the new version
     % optlog = 1 : merge the strong lines (for CT)
     % optlog = 2 : merge the weak lines (for WGA)

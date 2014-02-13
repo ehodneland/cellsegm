@@ -41,7 +41,7 @@ function [faser] = mergefragments(faser,im,thint,thconv,optlog,optint)
 
 
 
-dim = size(im);
+% dim = size(im);
 
 if isempty(intersect(optlog,[1 2]))
     error('Wrong option for OPTLOG')
@@ -101,7 +101,7 @@ end;
 
 disp('  The regions checked')
 [pairs.checked pairs.meanint]
-%     nfaser = length(pairs.ind);
+
 
 %
 % Start to merge
@@ -109,13 +109,6 @@ disp('  The regions checked')
 niter = 0;
 while ~isempty(pairs.meanint)
     niter = niter + 1;
-%         faserold = faser;
-
-%         % if no elements then abort
-%         if isempty(pairs.meanint)
-%             warning('All elements have been merged');
-%             break;
-%         end;
 
     %
     % Check for intensity

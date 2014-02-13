@@ -62,6 +62,10 @@ th.int = thint;
 th.conv = thconv;
 th.vol = Inf;
 
+msg = ['This is ' mfilename ' using parameters'];
+disp(msg);
+printstructscreen(th);
+
 % no border set to 0
 prm.isborder = 0;
 

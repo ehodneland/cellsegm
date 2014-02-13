@@ -210,20 +210,20 @@ dw = dw + w + handle.checkbox.w;
 handle.boundary.editfield.handle = uicontrol('Parent',handle.control.handle,'Style','edit','String','0.05', ...
     'Position',[left+dw b handle.editfield.w h]);    
 
-% draw line
-b = b - h - 5;
-dw = 0;
-handle.draw.button.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Draw', ...
-    'Position',[left b w h],'CallBack',{@callbackdrawim,handle});
-dw = dw + w;
-% handle.draw.checkbox.pos = [left+dw b handle.checkbox.w h];
-% handle.draw.checkbox.handle = uicontrol('Parent',handle.control.handle,'Style','Checkbox', ...
-%          'Position',handle.draw.checkbox.pos,'CallBack',{@callbackdrawcheck,handle});
-% set(handle.draw.checkbox.handle,'Value',0);
-dw = dw + handle.checkbox.w;
-handle.draw.editfield.pos = [left+dw b handle.editfield.w h];
-handle.draw.editfield.handle = uicontrol('Parent',handle.control.handle,'Style','edit','String','1', ...
-    'Position',handle.draw.editfield.pos);    
+% % draw line
+% b = b - h - 5;
+% dw = 0;
+% handle.draw.button.handle = uicontrol('Parent',handle.control.handle,'Style','PushButton','String','Draw', ...
+%     'Position',[left b w h],'CallBack',{@callbackdrawim,handle});
+% dw = dw + w;
+% % handle.draw.checkbox.pos = [left+dw b handle.checkbox.w h];
+% % handle.draw.checkbox.handle = uicontrol('Parent',handle.control.handle,'Style','Checkbox', ...
+% %          'Position',handle.draw.checkbox.pos,'CallBack',{@callbackdrawcheck,handle});
+% % set(handle.draw.checkbox.handle,'Value',0);
+% dw = dw + handle.checkbox.w;
+% handle.draw.editfield.pos = [left+dw b handle.editfield.w h];
+% handle.draw.editfield.handle = uicontrol('Parent',handle.control.handle,'Style','edit','String','1', ...
+%     'Position',handle.draw.editfield.pos);    
 
 % Quit
 b = b - h - 5;
@@ -481,15 +481,15 @@ while 1
         % remove cells that are attached to the boundary
         [cellbwvis,boundarybw,prm] = callbckboundary(cellbwvis,prm,cellbw,volbw,handle);
                         
-    elseif isequal(choice,'drawim')      
-        
-        % draw a line in the image
-        handle = callbckdrawim(handle,plane,im);
-        
-    elseif isequal(choice,'drawselect')
-                
-        % draw the image to draw on
-        [handle,linedata,cline] = callbckdrawselect(handle,linedata,plane,cline);
+%     elseif isequal(choice,'drawim')      
+%         
+%         % draw a line in the image
+%         handle = callbckdrawim(handle,plane,im);
+%         
+%     elseif isequal(choice,'drawselect')
+%                 
+%         % draw the image to draw on
+%         [handle,linedata,cline] = callbckdrawselect(handle,linedata,plane,cline);
         
     elseif isequal(choice,'quit')
         if prm.cellmod == 1

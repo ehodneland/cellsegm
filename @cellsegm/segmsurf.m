@@ -148,21 +148,25 @@ prm.classifycells.method = 'threshold';
 % Watershed parameters
 %
 
-% To test intensity of wat lines
-prm.watmerging = 0;
+% To test intensity of wat lines; merging
+prm.mergefragments.merging = 0;
+
+% methods for merging
+prm.mergefragments.optlog = 2;
+prm.mergefragments.optint = 2;
 
 % The signicance of watershed lines, stronger if larger, done on ridgeim!!
 % if the raw image, then use much smaller, around 1
 % set to 1.05-1.10
 % prm.watthint = 1.06;
-prm.watthintmerging = 1.3;
+prm.mergefragments.int = 1.3;
 
 % The conexity measure for the merging, we should not allow a very much
 % smaller convexity after merging
 % thconv = 1 if no change in convexity
 % thconv > 1 if increase in convexity
 % thconv < 1 if decrease in convexity
-prm.watthconvmerging = 1.0;
+prm.mergefragments.conv = 1.0;
 
 
 if maxvolfull < minvolfull
@@ -377,11 +381,9 @@ if prm.watmerging == 1
     % optlog = 2 : merge the weak lines (for WGA)
     % optint = 1 : use the region based merging
     % optint = 2 : use the snake based merging
-    optlog = 2;
-    optint = 2;
     msg = ['Merging watershed regions'];
     disp(msg);
-    wat = cellsegm.mergefragments(wat,imsegm,prm.watthintmerging,prm.watthconvmerging,optlog,optint);
+    wat = cellsegm.mergefragments(wat,imsegm,prm.mergefragments.int,prm.mergefragments.conv,prm.mergefragments.optlog,prm.mergefragments.optint);
     
     % re segment after fooling around with the image
     msg = ['Resegment watershed'];

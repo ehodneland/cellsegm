@@ -40,7 +40,7 @@ function [faser] = mergefragments(faser,im,thint,thconv,optlog,optint)
 %
 
 
-disp('  Merging regions')
+
 dim = size(im);
 
 if isempty(intersect(optlog,[1 2]))
@@ -62,7 +62,7 @@ th.int = thint;
 th.conv = thconv;
 th.vol = Inf;
 
-msg = ['This is ' mfilename ' using parameters'];
+msg = ['This is ' upper(mfilename) ' using parameters'];
 disp(msg);
 printstructscreen(th);
 

@@ -1,3 +1,4 @@
+function [faser] = mergefragments(faser,im,thint,thconv,optlog,optint)
 % MERGEFRAGMENTS Merging regiong in segmented image
 %
 % FASER = MERGEFRAGMENTS (FASER,IM,THINT,THCONV,OPTLOG,OPTINT) Merge regions 
@@ -37,7 +38,7 @@
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
 %
-function [faser] = mergefragments(faser,im,thint,thconv,optlog,optint)
+
 
 disp('  Merging regions')
 dim = size(im);
@@ -91,7 +92,7 @@ L = length(valfaser);
 
 for i = 1 : L    
     % get parameters
-    pairs = getprm(valfaser(i),im,faser,pairs,optint,0,prm);       
+    pairs = getprm(valfaser(i),im,faser,pairs,optint,prm);       
 end;
 
 disp('  The regions checked')
@@ -112,6 +113,10 @@ while ~isempty(pairs.meanint)
 %             break;
 %         end;
 
+    %
+    % Check for intensity
+    %
+    
     % always pick the maximum/minimum intense border, here we find it
     if optlog == 1
         [trial.int,indext] = max(pairs.meanint);
@@ -157,7 +162,7 @@ while ~isempty(pairs.meanint)
     % ratioconv = 1 if no change in convexity after merging
     % ratioconv > 1 if decrease in convexity after merging
     % ratioconv < 1 if increase in convexity after merging
-    % merge for ratioconv < wprm.thconv
+    % merge for ratioconv < prm.conv
     a = area1;
     b = area2;
     A = convarea1;
@@ -278,7 +283,7 @@ while ~isempty(pairs.meanint)
 
     % get parameters again for the LOWEST watershed region which is a new
     % region!!
-    pairs = getprm(minreg,im,faser,pairs,optint,0,prm);       
+    pairs = getprm(minreg,im,faser,pairs,optint,prm);       
 
     if niter > prm.nitervis
         minreg
@@ -292,8 +297,6 @@ while ~isempty(pairs.meanint)
         pause
     end;
 end;
-%     nfaserold = nfaser;
-% end
 
 msg = ['Finally checked'];
 disp(msg);
@@ -321,12 +324,15 @@ pairs.checked(ind,:) = [];
 
 %----------------------------------------------------------------------        
         
-function [pairs] = getprm(valhere,im,faser,pairs,optlog,vis,prm)
+function [pairs] = getprm(valhere,im,faser,pairs,optlog,prm)
 
 dim = size(im);
-
+if numel(dim) == 2
+    dim = [dim 1];
+end;
 % this region
 segm.reghere = eq(faser,valhere);
+
 load ball1;se1 = getball(ball,1,dim(3));
 load ball2;se2 = getball(ball,2,dim(3));
 if prm.isborder
@@ -350,11 +356,11 @@ for i = 1 : nneigh
     neighhere = neigh(i);    
     
     % check for earlier intersection
-    chkbef = ~isempty(intersect(pairs.checked,[neighhere valhere],'rows'));
+    chkbef = ~isempty(intersect(pairs.checked,[neighhere valhere]));
 
     % have checked before so continue
     if chkbef
-        msg = ['Checked before' int2str(valhere) ' and ' int2str(neighhere) ', continue'];
+        msg = ['Checked before ' int2str(valhere) ' and ' int2str(neighhere) ', continue'];
         disp(msg);
         continue;
     end;
@@ -387,12 +393,6 @@ for i = 1 : nneigh
     % only take if long enough
     [range,minz,maz] = bwrange(segm.border);
     relnumpixborder = length(indhere)/range;    
-
-%     if relnumpixborder < 5
-%         msg = ['Too few pixels in border, continue'];
-%         disp(msg);
-%         continue;
-%     end;
     
     if isempty(find(segm.border,1))
         msg = ['Empty border, continuing'];
@@ -510,9 +510,12 @@ neigh = unique(neighall);
 function [convarea] = calcconvarea(BW)
 
 dim = size(BW);
+if numel(dim) == 2
+    dim = [dim 1];
+end;
 convarea = 0;
 for j = 1 : dim(3)
-    if isempty(find(BW(:,:,j)))
+    if isempty(find(BW(:,:,j),1))
         continue;
     end;
 %     try

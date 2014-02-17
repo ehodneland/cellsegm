@@ -499,7 +499,8 @@ end;
 thim = constborder(thim,5,0);
 
 % remove very small
-thim = bwareaopen(thim,round(0.2*prm.minvolvox),conn);
+thhere = max(3,round(0.2*prm.minvolvox));
+thim = bwareaopen(thim,thhere,conn);
 if vis == 1
     'after remove small and fix border'
     showall(imhere,thim)
@@ -510,7 +511,7 @@ end;
 %
 disp('  Closing and filling');
 filled = zeros(size(thim));
-step = 3;
+step = 2;
 high = 10;
 
 % make constant around to also include the cells at border. 
@@ -549,13 +550,11 @@ for i = 0 : step : high
         end;
 
         filledRed = bwareaopen(filledRed,prm.minvolvox,conn);
-        filledRed = filledRed - bwareaopen(filledRed,2*prm.maxvolvox,conn);              
+        filledRed = filledRed - bwareaopen(filledRed,prm.maxvolvox,conn);              
         filledRed = logical(filledRed);
 
         % reduced old filled regions
-        filledRedOld = filled(box(1,1):box(1,2),box(2,1):box(2,2),box(3,1):box(3,2));
-        
-%         filledredbef = filledRed;
+        filledRedOld = filled(box(1,1):box(1,2),box(2,1):box(2,2),box(3,1):box(3,2));        
         filledRed = removeoverlap(filledRed,filledRedOld,conn);
         
         % put back
@@ -579,6 +578,7 @@ end
 % estimate the diameter of a sphere
 dimopen = 2*((3*prm.minvolvox)/(4*pi))^(1/3);
 dimopen = round(dimopen/6);
+dimopen = max(dimopen,1);
 % dimopen = 10;
 name = ['ball' int2str(dimopen)];
 load(name);se  = getball(ball,dimopen,1);
@@ -586,22 +586,21 @@ load(name);se  = getball(ball,dimopen,1);
 minima = zeros(size(minima));
 for i = 1 : L
     reghere = faser == i;
-    vol = sum(reghere(:));
-    if vol > 2*prm.minvolvox
-        reghere = imopen(reghere,se);    
-    end;
+%     vol = sum(reghere(:));
+    reghere = imopen(reghere,se);    
     minima(reghere == 1) = 1;
 end;
 
 % must erode again after opeining to take apart from each other minima we
 % have opened
-minima = erolarreg(minima,2,prm.minvolvox*2);
+% Cannot erode if minvolvox is too small, then you remove everything
+
+thhere = max(10,prm.minvolvox*2);
+minima = erolarreg(minima,1,thhere);
 
 if vis == 1
     'After erode and open'
-    show(imhere,1)
-    show(minima,2)
-    pause
+    showall(imhere,minima)
 end
  
 % must remove small after open
@@ -628,9 +627,7 @@ minima = fillholes(minima,0,prm.minvolvox,conn);
 
 if vis == 1
     'After closing each region separately'
-    show(imhere,1)
-    show(minima,2)
-    pause
+    showall(imhere,minima)
 end
 
 

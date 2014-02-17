@@ -1,3 +1,4 @@
+function [filtim] = dircohenh(varargin)
 % DIRCOHENH Structural smoothing of image
 %
 %   DIRCOHENH(IM,D,H) Smoothes the image IM using a square filter with
@@ -31,7 +32,6 @@
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
 %
-function [filtim] = dircohenh(varargin)
 
 im = varargin{1};
 prm.d = varargin{2};

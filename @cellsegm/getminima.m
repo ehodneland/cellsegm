@@ -576,23 +576,26 @@ end
 
 
 % MUST open large regions!
-dimopen = 10;
+% estimate the diameter of a sphere
+dimopen = 2*((3*prm.minvolvox)/(4*pi))^(1/3);
+dimopen = round(dimopen/6);
+% dimopen = 10;
 name = ['ball' int2str(dimopen)];
 load(name);se  = getball(ball,dimopen,1);
 [faser,L] = bwlabeln(minima);
 minima = zeros(size(minima));
 for i = 1 : L
     reghere = faser == i;
-%     [range,minZ,maxZ] = bwrange(reghere);
     vol = sum(reghere(:));
     if vol > 2*prm.minvolvox
-        reghere = imopen(reghere,se);
+        reghere = imopen(reghere,se);    
     end;
     minima(reghere == 1) = 1;
 end;
+
 % must erode again after opeining to take apart from each other minima we
 % have opened
-minima = erolarreg(minima,2,prm.minvolvox);
+minima = erolarreg(minima,2,prm.minvolvox*2);
 
 if vis == 1
     'After erode and open'

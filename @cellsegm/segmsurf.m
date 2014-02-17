@@ -149,7 +149,7 @@ prm.classifycells.method = 'threshold';
 %
 
 % To test intensity of wat lines; merging
-prm.merge = 0;
+prm.mergeregions = 0;
 
 % methods for merging
 prm.mergefragments.optlog = 2;

@@ -214,7 +214,7 @@ if ~isfield(prm,'meanintbck')
     % mean intensity of background (largest region)
     [vol,faser] = bwsize(wat > 0,6);
     [maxvol,ind] = max(vol);
-    bck = faser == ind;
+    bck = faser == ind;    
     prm.meanintbck = mean(im(bck));
 end;
 

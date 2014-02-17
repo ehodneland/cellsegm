@@ -77,10 +77,10 @@ if ndim == 2
     filt2 = fspecial('gaussian',9,5);
     if strcmp(opt,'ana')
         % 2D coherence enhancing analytical diffusion
-        [u] = cohdiff2dana(u,filt1,filt2,prm.dt,prm.maxniter,prm);
+        u = cohdiff2dana(u,filt1,filt2,prm.dt,prm.maxniter,prm);
     elseif strcmp(opt,'num')
          % 2D coherence enhancing numerical diffusion
-        [u] = cohdiff2dnum(u,filt1,filt2,prm.dt,prm.maxniter,prm);
+        u = cohdiff2dnum(u,filt1,filt2,prm.dt,prm.maxniter,prm);
         return
     else
         error('Wrong option for OPT');

@@ -1,16 +1,17 @@
+function [u] = cohenhdiff(varargin)
 %   COHENHDIFF Cohenrence enhancing diffusion
 %
-%   COHENHDIFF(U,DT,NITER,KAPPA)  performs coherence enhancing diffusion of the
+%   COHENHDIFF(U,DT,NITER,KAPPA,H)  performs coherence enhancing diffusion of the
 %   image U using timestep DT and NITER iterations. KAPPA is the concuctivity
-%   parameter.
+%   parameter. H is the voxel size
 %
-%   COHENHDIFF(U,DT,NITER,KAPPA,'OPT',OPT) can specify analytical (OPT = 'ana') or
+%   COHENHDIFF(...,'OPT',OPT) can specify analytical (OPT = 'ana') or
 %   numerical (OPT = 'num') solution
 %
-%   COHENHDIFF(U,DT,NITER,KAPPA,'INVDIFF',INVDIFF) specifies using inverse
+%   COHENHDIFF(...,'INVDIFF',INVDIFF) specifies using inverse
 %   diffusion (1) or not (0)
 %
-%   Ex: filtim = cohenhdiff(im,0.2,100,0.0001);
+%   Ex: filtim = cohenhdiff(im,0.2,100,0.0001,[1,1,1]);
 %
 %   Literature:
 %   Algorithms for non-linear diffusion, MATLAB in a literate programming
@@ -35,18 +36,17 @@
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
 %
-function [u] = cohenhdiff(varargin)
+
 
 u = varargin{1};
-dt = varargin{2};
-maxniter = varargin{3};
-kappa = varargin{4};
+prm.dt = varargin{2};
+prm.maxniter = varargin{3};
+prm.kappa = varargin{4};
+prm.h = varargin{5};
 opt = 'ana';
 prm.invdiff = [];
 prm.gpu = 0;
-prm.h = [1 1 3];
-prm.kappa = kappa;
-for i = 5:2:nargin
+for i = 6:2:nargin
     varhere = varargin{i};
     switch(varhere)
         case ('opt')
@@ -77,10 +77,10 @@ if ndim == 2
     filt2 = fspecial('gaussian',9,5);
     if strcmp(opt,'ana')
         % 2D coherence enhancing analytical diffusion
-        [u] = cohdiff2dana(u,filt1,filt2,dt,maxniter,prm);
+        [u] = cohdiff2dana(u,filt1,filt2,prm.dt,prm.maxniter,prm);
     elseif strcmp(opt,'num')
          % 2D coherence enhancing numerical diffusion
-        [u] = cohdiff2dnum(u,filt1,filt2,dt,maxniter,prm);
+        [u] = cohdiff2dnum(u,filt1,filt2,prm.dt,prm.maxniter,prm);
         return
     else
         error('Wrong option for OPT');

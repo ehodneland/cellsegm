@@ -1,3 +1,4 @@
+function [BW] = erolarreg(BW,p,th)
 % EROLARREG Erode large regions in image
 %
 %   EROLARREG(BW,P,TH) Eroding binary large regions above 
@@ -23,7 +24,7 @@
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
 %
-function [BW] = erolarreg(BW,p,th)
+
 
 
 [faser,L] = bwlabeln(BW);

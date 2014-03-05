@@ -256,6 +256,10 @@ disp(msg);
 
 function [cellbw,wat] = segmadth(im,prm,conn)
 
+msg = ['This is SEGMADTH using settings'];
+disp(msg);
+printstructscreen(prm);
+
 % adaptive thresholding
 d = round(prm.filtrad/mean(prm.h(1:2)));
 msg = ['Adaptive filtering with filter radius ' num2str(d) ' and threshold ' num2str(prm.adth)];
@@ -343,6 +347,7 @@ prmin.illum = 0;
 
 %-----------------------------------------------------------------
 function [cellbw,wat] = segmdist(im,prm,conn,opDiam)
+
 
 [M N O] = size(im);
 
@@ -521,6 +526,10 @@ end;
 % segmentation with iterative thresholding until regions are larger than
 % expected cell volume
 function [cellbw,wat] = segmthrs(im,prm,conn)
+
+msg = ['This is SEGMTHRS using settings'];
+disp(msg);
+printstructscreen(prm);
 
 vis = 0;
 

@@ -235,7 +235,11 @@ end;
 
 % remove the large cells
 % Lin = Lout;
+[faser,L1] = bwlabeln(cellbw);
 cellbw = cellbw - bwareaopen(cellbw,prm.maxvolvox,6);
+[faser,L2] = bwlabeln(cellbw);
+msg = ['Removed ' int2str(L1-L2) ' regions due to large size'];
+disp(msg);
 
 % to return
 imsegm = im;
@@ -290,11 +294,13 @@ holes = imfill(cellbw,'holes') - cellbw;
 holes = holes - bwareaopen(holes,prm.minvolvox,conn);
 cellbw(holes == 1) = 1;
 
+
 % erode and open to disconnects
 load ball2;se = getball(ball,2,1);
 cellbw = imopen(cellbw,se);
 load ball1;se = getball(ball,1,1);
 cellbw = imerode(cellbw,se);
+
 
 % return
 [wat,L] = bwlabeln(cellbw);

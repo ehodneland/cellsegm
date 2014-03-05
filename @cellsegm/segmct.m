@@ -274,7 +274,7 @@ disp(msg);
 printstructscreen(prm);
 
 % adaptive thresholding
-d = round(prm.filtrad);
+d = round(prm.filtrad/mean(prm.h(1:2)));
 msg = ['Adaptive filtering with filter radius ' num2str(d) ' and threshold ' num2str(prm.adth)];
 disp(msg);
 cellbw = adaptfiltim(im,d,prm.adth);

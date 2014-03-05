@@ -158,6 +158,16 @@ cellsegm.cellsize(minvolfull,maxvolfull,prm.h,prm.just,dim(3));
 prm.minvolfull = minvolfull;
 prm.maxvolfull = maxvolfull;
 
+% Threshold for splitting the cells. Default: We split for cells above the average
+% cell volume
+if ~isfield(prm,'splitminvolvox')
+    d = (prm.minvolvox + prm.maxvolvox)/4;
+    prm.splitvolvox = prm.minvolvox + d;
+end;
+% Plane for splitting: Default: One third of the stack height
+if ~isfield(prm,'splitplane')
+    prm.splitplane = ceil(dim(3)/3);    
+end;
 msg = ['This is SEGMCT using settings'];
 disp(msg);
 printstructscreen(prm);
@@ -225,9 +235,8 @@ end;
 % split cells?
 if prm.split
     msg = ['Splitting cells using distance function'];
-    disp(msg);
-    plane = ceil(dim(3)/3);
-    [cellbw] = cellsegm.splitcells(cellbw,prm.splitth,plane);
+    disp(msg);    
+    [cellbw] = cellsegm.splitcells(cellbw,prm.splitth,prm.splitplane,prm.splitvolvox);
    
     % relabel
     [wat,L] = bwlabeln(cellbw);
@@ -265,18 +274,10 @@ disp(msg);
 printstructscreen(prm);
 
 % adaptive thresholding
-d = round(prm.filtrad/mean(prm.h(1:2)));
+d = round(prm.filtrad);
 msg = ['Adaptive filtering with filter radius ' num2str(d) ' and threshold ' num2str(prm.adth)];
 disp(msg);
 cellbw = adaptfiltim(im,d,prm.adth);
-
-% remove the small cells
-disp('Remove small parts that are not cells')
-[faser,Lin] = bwlabeln(cellbw,conn);
-cellbw = bwareaopen(cellbw,round(prm.minvolvox),6);
-[faser,Lout] = bwlabeln(cellbw,conn);
-msg = ['Removed ' int2str(Lin-Lout) ' regions due to small size'];
-disp(msg);
 
 % % remove the large cells
 % Lin = Lout;
@@ -300,6 +301,14 @@ load ball2;se = getball(ball,2,1);
 cellbw = imopen(cellbw,se);
 load ball1;se = getball(ball,1,1);
 cellbw = imerode(cellbw,se);
+
+% remove the small cells
+disp('Remove small parts that are not cells')
+[faser,Lin] = bwlabeln(cellbw);
+cellbw = bwareaopen(cellbw,prm.minvolvox,6);
+[faser,Lout] = bwlabeln(cellbw);
+msg = ['Removed ' int2str(Lin-Lout) ' regions due to small size'];
+disp(msg);
 
 
 % return
@@ -594,7 +603,7 @@ end;
 % connect each
 v = min(round(prm.minvolvox/1000),3);
 if v > 0
-    name = ['ball' v];load(name);
+    name = ['ball' int2str(v)];load(name);
     se = getball(ball,v,1);
     [faser,L] = bwlabeln(cellbw);
     for i = 1 : L
@@ -642,13 +651,11 @@ if vis == 1
     showall(im,cellbw);
 end;
 
-
 % remove the small cells
 disp('Remove small parts that are not cells')
 [faser,Lin] = bwlabeln(cellbw);
 cellbw = bwareaopen(cellbw,prm.minvolvox,6);
 [faser,Lout] = bwlabeln(cellbw);
-
 msg = ['Removed ' int2str(Lin-Lout) ' regions due to small size'];
 disp(msg);
 

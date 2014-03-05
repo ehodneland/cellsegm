@@ -1,8 +1,9 @@
-function [cellbw] = splitcells(cellbw,splitth,plane)
+function [cellbw] = splitcells(cellbw,splitth,plane,splitvolvox)
 % SPLITCELLS Splitting segmented binary image of cells 
 %
-%   CELLBW = SPLITCELLS(CELLBW,SPLITTH,PLANE) splitting the cells in CELLBW and the
-%   splitting threshold in SPLITTH. SPLITTH is the second argument in
+%   CELLBW = SPLITCELLS(CELLBW,SPLITTH,PLANE,MINVOLVOX) splitting the cells 
+%   in CELLBW and the splitting threshold in SPLITTH with the voxel volume 
+%   MINVOLVOX. SPLITTH is the second argument in
 %   IMEXTENDEDMAX. PLANE is the plane where the distance 
 %   function in 2D is computed, although the code runs for 3D data. 
 %   Returning the splitted cells in the binary image CELLBW.
@@ -36,6 +37,9 @@ function [cellbw] = splitcells(cellbw,splitth,plane)
 %
 vis = 0;
 
+msg = ['This is ' upper(mfilename) ' splitting objects'];
+disp(msg);
+
 dim = size(cellbw);
 ndim = numel(dim);
 if ndim == 2
@@ -48,20 +52,29 @@ else
     conn = 18;
 end;
 
+% make sure that the splitting threshold is integer valued
+splitvolvox = round(splitvolvox);
+
+% extract the large regions what you want to split
 cellbwin = cellbw;
+cellbw = bwareaopen(cellbw,splitvolvox,6);    
+cellbwsplit = cellbw;
+
+% extract one plane to work on
 cellbw = cellbw(:,:,plane);
 
-% input volumes
-volin = bwsize(cellbw,conn);
-meanvol = mean(volin);
-minvol = min(volin);
+[faser,L] = bwlabeln(cellbw);
+msg = ['Number of objects due to splitting: ' int2str(L)];
+disp(msg);
+if L == 0
+    warning('Number of objects due to splitting is too low, increase the value');
+end;
 
 % distance function must be done in 2D since it othwerwise becomes very
 % strange
 distim = bwdist(imcomplement(cellbw));
 
 if vis    
-    cellbwin = cellbw;
     disp('After distance function')
     showall(cellbw,distim)
 end;
@@ -93,19 +106,17 @@ for i = 1 : length(val)
    
 end;
 perimall = perimall > 0;
-cellbw = cellbwin;
+% lines only on the large regions, not to remove lines from smaller regions
+p = zeros(dim);
 for i = 1 : dim(3)
-    cellbwhere = cellbw(:,:,i);    
-    cellbwhere(perimall>0) = 0;
-    cellbw(:,:,i) = cellbwhere;
+    p(:,:,i) = perimall .* cellbwsplit(:,:,i);
 end;
+perimall = p;
 
-% volume
-[vol,faser] = bwsize(cellbw,conn);
-ind = find(vol < 0.5*minvol);
-for i = 1 : numel(ind)    
-    cellbw(faser == ind(i)) = 0;
-end;
+% remove the lines from the objects
+cellbw = cellbwin;
+cellbw(perimall == 1) = 0;
+
 
 if vis
     disp('Final')

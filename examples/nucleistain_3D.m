@@ -38,7 +38,9 @@ cellsegm.show(cellbw1(:,:,plane),2);
 title('Cell segmentation, iterative thresholding, without splitting');axis off;
 
 % Add splitting of cells. Can do this separately to have better control
-prm.splitth = 2;
-cellbw2 = cellsegm.splitcells(cellbw1,prm.splitth,plane);
-cellsegm.show(cellbw2(:,:,plane),2);
+prm.splitth = 0.5;
+% cells above this threshold are split (all cells here)
+n = prmout.minvolvox;
+cellbw2 = cellsegm.splitcells(cellbw1,prm.splitth,plane,n);
+cellsegm.show(cellbw2(:,:,plane),3);
 title('Cell segmentation, iterative thresholding, with splitting');axis off;

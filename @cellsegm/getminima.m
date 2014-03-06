@@ -489,7 +489,7 @@ printstructscreen(prm);
 
 % thresholding
 im = scale(im);
-thim = logical(adaptfiltim(imhere,adaptfiltdim,prm.adth));
+thim = logical(adaptfiltim(imhere,adaptfiltdim,prm.adth,prm.h));
 if vis == 1
     disp('Before remove small')
     showall(imhere,thim)

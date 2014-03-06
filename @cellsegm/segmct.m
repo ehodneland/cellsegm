@@ -274,21 +274,9 @@ disp(msg);
 printstructscreen(prm);
 
 % adaptive thresholding
-d = round(prm.filtrad/mean(prm.h(1:2)));
-msg = ['Adaptive filtering with filter radius ' num2str(d) ' and threshold ' num2str(prm.adth)];
-disp(msg);
-cellbw = adaptfiltim(im,d,prm.adth);
-
-% % remove the large cells
-% Lin = Lout;
-% cellbw = cellbw - bwareaopen(cellbw,prm.maxvolvox,6);
-% [faser,Lout] = bwlabeln(cellbw,conn);
-% 
-% msg = ['Removed ' int2str(Lin-Lout) ' regions due to large size'];
+% msg = ['Adaptive filtering with filter radius ' num2str(prm.filtrad) ' and threshold ' num2str(prm.adth)];
 % disp(msg);
-
-% % split the cells
-% cellbw = splitcells(cellbw,conn);
+cellbw = adaptfiltim(im,prm.filtrad,prm.adth,prm.h);
 
 % fill holes
 holes = imfill(cellbw,'holes') - cellbw;

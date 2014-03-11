@@ -211,7 +211,7 @@ if isequal(prm.method,'thrs')
     prmin.h = prm.h;
     prmin.minvolvox = prm.minvolvox;
     prmin.maxvolvox = prm.maxvolvox;
-    [cellbw,wat] = segmthrs(im,prmin,conn);
+    [cellbw] = segmthrs(im,prmin,conn);
 % elseif isequal(prm.method,'gradient')
     % Almost 
     % Combining intensity, edge and shape information for 2d and 3D
@@ -227,7 +227,7 @@ elseif isequal(prm.method,'adth')
     prmin.h = prm.h;
     prmin.minvolvox = prm.minvolvox;
     prmin.maxvolvox = prm.maxvolvox;    
-    [cellbw,wat] = segmadth(im,prmin,conn);
+    [cellbw] = segmadth(im,prmin,conn);
 else
     error('No valid method given');
 end;
@@ -238,10 +238,16 @@ if prm.split
     disp(msg);    
     [cellbw] = cellsegm.splitcells(cellbw,prm.splitth,prm.splitplane,prm.splitvolvox);
    
-    % relabel
-    [wat,L] = bwlabeln(cellbw);
 end;
-
+% save test
+% remove the small cells
+disp('Remove small parts that are not cells')
+[faser,Lin] = bwlabeln(cellbw);
+cellbw = bwareaopen(cellbw,prm.minvolvox,6);
+[faser,Lout] = bwlabeln(cellbw);
+msg = ['Removed ' int2str(Lin-Lout) ' regions due to small size'];
+disp(msg);
+% showall(im,cellbw)
 % remove the large cells
 % Lin = Lout;
 [faser,L1] = bwlabeln(cellbw);
@@ -249,7 +255,8 @@ cellbw = cellbw - bwareaopen(cellbw,prm.maxvolvox,6);
 [faser,L2] = bwlabeln(cellbw);
 msg = ['Removed ' int2str(L1-L2) ' regions due to large size'];
 disp(msg);
-
+% showall(im,cellbw)
+    
 % to return
 imsegm = im;
 prmout = prm;
@@ -267,7 +274,7 @@ disp(msg);
 
 %--------------------------------------------------------------------
 
-function [cellbw,wat] = segmadth(im,prm,conn)
+function [cellbw] = segmadth(im,prm,conn)
 
 msg = ['This is SEGMADTH using settings'];
 disp(msg);
@@ -278,29 +285,23 @@ printstructscreen(prm);
 % disp(msg);
 cellbw = adaptfiltim(im,prm.filtrad,prm.adth,prm.h);
 
+
 % fill holes
 holes = imfill(cellbw,'holes') - cellbw;
 holes = holes - bwareaopen(holes,prm.minvolvox,conn);
 cellbw(holes == 1) = 1;
 
 
-% erode and open to disconnects
+% erode and open to disconnect
 load ball2;se = getball(ball,2,1);
 cellbw = imopen(cellbw,se);
 load ball1;se = getball(ball,1,1);
 cellbw = imerode(cellbw,se);
 
-% remove the small cells
-disp('Remove small parts that are not cells')
-[faser,Lin] = bwlabeln(cellbw);
-cellbw = bwareaopen(cellbw,prm.minvolvox,6);
-[faser,Lout] = bwlabeln(cellbw);
-msg = ['Removed ' int2str(Lin-Lout) ' regions due to small size'];
-disp(msg);
 
-
-% return
-[wat,L] = bwlabeln(cellbw);
+% 
+% % return
+% [wat,L] = bwlabeln(cellbw);
 
 
 %-----------------------------------------------------------------
@@ -528,7 +529,7 @@ end;
 
 % segmentation with iterative thresholding until regions are larger than
 % expected cell volume
-function [cellbw,wat] = segmthrs(im,prm,conn)
+function [cellbw] = segmthrs(im,prm,conn)
 
 msg = ['This is SEGMTHRS using settings'];
 disp(msg);
@@ -638,18 +639,18 @@ if vis == 1
     disp('After disconnect')
     showall(im,cellbw);
 end;
+% 
+% % remove the small cells
+% disp('Remove small parts that are not cells')
+% [faser,Lin] = bwlabeln(cellbw);
+% cellbw = bwareaopen(cellbw,prm.minvolvox,6);
+% [faser,Lout] = bwlabeln(cellbw);
+% msg = ['Removed ' int2str(Lin-Lout) ' regions due to small size'];
+% disp(msg);
 
-% remove the small cells
-disp('Remove small parts that are not cells')
-[faser,Lin] = bwlabeln(cellbw);
-cellbw = bwareaopen(cellbw,prm.minvolvox,6);
-[faser,Lout] = bwlabeln(cellbw);
-msg = ['Removed ' int2str(Lin-Lout) ' regions due to small size'];
-disp(msg);
-
-
-% output watershed image
-[wat,Lwat] = bwlabeln(cellbw);
+% 
+% % output watershed image
+% [wat,Lwat] = bwlabeln(cellbw);
 
 if vis == 1
     disp('Final')

@@ -1,3 +1,4 @@
+function [prmdefault] = mergestruct(prmdefault,prmin)
 % MERGESTRUCT Merging two structs
 %
 %   PRMDEFAULT = MERGESTRUCT(PRMDEFEAULT,PRMIN) merging the two structs 
@@ -22,7 +23,7 @@
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
 %
-function [prmdefault] = mergestruct(prmdefault,prmin)
+
     
     
     if isempty(prmin)        

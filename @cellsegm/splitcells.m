@@ -47,9 +47,9 @@ if ndim == 2
 end;
 
 if ndim == 2
-    conn = 8;
+    conn = 4;
 else
-    conn = 18;
+    conn = 6;
 end;
 
 % make sure that the splitting threshold is integer valued
@@ -57,23 +57,32 @@ splitvolvox = round(splitvolvox);
 
 % extract the large regions what you want to split
 cellbwin = cellbw;
-cellbw = bwareaopen(cellbw,splitvolvox,6);    
-cellbwsplit = cellbw;
+cellbw = bwareaopen(cellbw,splitvolvox,6); 
+cellbwsmall = cellbwin - cellbw;
 
 % extract one plane to work on
-cellbw = cellbw(:,:,plane);
+if ~isequal(plane,'all')
+    cellbw = cellbw(:,:,plane);
+end;
+
+cellbw = cellbw > 0;
+% load ball1;se = getball(ball,1,1);
+% cellbwdil = imdilate(cellbw,se);
+D = bwdist(cellbw == 0);
 
 [faser,L] = bwlabeln(cellbw);
 msg = ['Number of objects due to splitting: ' int2str(L)];
 disp(msg);
 if L == 0
-    warning('Number of objects due to splitting is too low, increase the value');
+    warning('Number of objects due to splitting is too low, you may want to decrease the volume threshold');
+    cellbw = cellbwin;
+    return;
 end;
 
-% distance function must be done in 2D since it othwerwise becomes very
-% strange
-distim = bwdist(imcomplement(cellbw));
 
+cellbw = logical(cellbw);
+distim = D;
+vis = 0;
 if vis    
     disp('After distance function')
     showall(cellbw,distim)
@@ -81,42 +90,39 @@ end;
 
 % maximum points
 maximumbw = imextendedmax(distim,splitth);
+% remove single voxels
+load ball1;se = getball(ball,1,1);
+maximumbw = imopen(maximumbw,se);
 
+% background
 if vis
     disp('After imextendedmax');
     showall(cellbw,maximumbw);
 end;
 
-% division lines
-division = distimage(maximumbw,conn);
+% find the Euclidean distances between the maxima
+distim = distimage(maximumbw,conn);
+
+% find the division lines
+division = absgradient(distim,[1 1 1]);
+division = division > 0;
+
+% only within the large regions
+division = division.*cellbw;
+cellbw(division == 1) = 0;
+
+% large and small regions
+cellbw = cellbw | cellbwsmall;
+
+% vis = 1
 if vis
-    disp('After distim2')
-    showall(cellbw,division)
+    disp('After distim')
+    showall(cellbw,distim,maximumbw)
 end;
 
-
-% find lines
-val = unique(division(maximumbw == 1));
-perimall = zeros(dim(1:2));
-for i = 1 : length(val)
-    reghere = division == val(i);
-   
-   perim = bwperim(reghere);        
-   perimall = perimall + perim;
-   
-end;
-perimall = perimall > 0;
-% lines only on the large regions, not to remove lines from smaller regions
-p = zeros(dim);
-for i = 1 : dim(3)
-    p(:,:,i) = perimall .* cellbwsplit(:,:,i);
-end;
-perimall = p;
-
-% remove the lines from the objects
-cellbw = cellbwin;
-cellbw(perimall == 1) = 0;
-
+% if there are artifacts from lines
+load ball1;se = getball(ball,1,1);
+cellbw = imopen(cellbw,se);
 
 if vis
     disp('Final')

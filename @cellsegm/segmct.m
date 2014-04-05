@@ -236,10 +236,9 @@ end;
 if prm.split
     msg = ['Splitting cells using distance function'];
     disp(msg);    
-    [cellbw] = cellsegm.splitcells(cellbw,prm.splitth,prm.splitplane,prm.splitvolvox);
-   
+    [cellbw] = cellsegm.splitcells(cellbw,prm.splitth,prm.splitplane,prm.splitvolvox);   
 end;
-% save test
+
 % remove the small cells
 disp('Remove small parts that are not cells')
 [faser,Lin] = bwlabeln(cellbw);
@@ -264,6 +263,7 @@ prmout = prm;
 [wat,L] = bwlabeln(cellbw);
 msg = ['Number of objects left: ' int2str(L)];
 disp(msg);
+
 
 % [faser,Lout] = bwlabeln(cellbw);
 % msg = ['Removed ' int2str(Lin-Lout) ' regions due to large size'];

@@ -31,7 +31,7 @@ classdef cellsegm
       [cellbw,wat,imsegm,prmout] = segmct(varargin);
       [cellbw,wat,imsegm,minima,minimacell,info] = segmsurf(varargin);
       [im] = smoothim(varargin);
-      [cellbw] = splitcells(cellbw,splitth,plane,splitvolvox);
+      [cellbw] = splitcells(cellbw,splitth,plane,splitvolvox,h);
       viewsegm(varargin);
       [faser] = mergefragments(faser,im,thint,thconv,optlog,optint);
       [faser] = resegmentwat(faser,im);

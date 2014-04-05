@@ -1,14 +1,14 @@
 function [u] = cohenhdiff(varargin)
 %   COHENHDIFF Cohenrence enhancing diffusion
 %
-%   COHENHDIFF(U,DT,NITER,KAPPA,H)  performs coherence enhancing diffusion of the
+%   FILTIM = COHENHDIFF(U,DT,NITER,KAPPA,H)  performs coherence enhancing diffusion of the
 %   image U using timestep DT and NITER iterations. KAPPA is the concuctivity
 %   parameter. H is the voxel size
 %
-%   COHENHDIFF(...,'OPT',OPT) can specify analytical (OPT = 'ana') or
+%   FILTIM = COHENHDIFF(...,'OPT',OPT) can specify analytical (OPT = 'ana') or
 %   numerical (OPT = 'num') solution
 %
-%   COHENHDIFF(...,'INVDIFF',INVDIFF) specifies using inverse
+%   FILTIM = COHENHDIFF(...,'INVDIFF',INVDIFF) specifies using inverse
 %   diffusion (1) or not (0)
 %
 %   Ex: filtim = cohenhdiff(im,0.2,100,0.0001,[1,1,1]);
@@ -94,7 +94,7 @@ elseif ndim == 3
 %         u = cohdiff3dana(u,filt1,filt2,dt,niter,prm);    
     elseif strcmp(opt,'num')
         % 3D coherence enhancing numerical diffusion 
-        u = cohdiff3dnumcell(u,filt1,filt2,dt,maxniter,prm);    
+        u = cohdiff3dnumcell(u,filt1,filt2,prm.dt,prm.maxniter,prm);    
     else
         error('Wrong option for OPT');
     end;
@@ -268,7 +268,7 @@ for i = 1 : niter
 
     % update 
     update = tnldstep3d(u,D,prm);
-    u = u + dt* update;
+    u = u + dt*update;
     
         
 end;

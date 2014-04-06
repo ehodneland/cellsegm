@@ -38,6 +38,8 @@ classdef cellsegm
       [faser] = resegmentwat(faser,im);
       [v] = ridgeenhhessian(varargin);
       show(im,fignum);
+      showall(im);
+      show4D(im);
    end 
       
 end

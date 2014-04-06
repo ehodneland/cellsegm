@@ -27,7 +27,8 @@ classdef cellsegm
       [minvol,minvolvox,maxvol,maxvolvox] = cellsize(minvol,maxvol,h,just,O);
       [cellbw,infocells] = classifycells(varargin);
       [minima,minimacell,prm] = getminima(varargin);
-      [errorfolder] = readbioformat(varargin);
+      readbioformat(varargin);
+      readbioformatmatlab(varargin);
       [cellbw,wat,imsegm,prmout] = segmct(varargin);
       [cellbw,wat,imsegm,minima,minimacell,info] = segmsurf(varargin);
       [im] = smoothim(varargin);

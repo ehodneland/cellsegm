@@ -1,4 +1,4 @@
-function [errorfolder] = readbioformat(varargin)
+function [] = readbioformat(varargin)
 % READBIOFORMAT Reads Bio-Formats like .LIF
 %
 %   READBIOFORMAT(INFILE) reads Bio-Formats like .lif specified in the cell array
@@ -44,7 +44,7 @@ end;
 if ~iscell(liffile)
     liffile = {liffile};
 end;
-errorfolder = [];
+
 for i = 1 : numel(liffile)
 
 

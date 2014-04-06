@@ -14,10 +14,10 @@ A = varargin{2};
 dim = size(A);
 
 % make 0 255 and uint8
-u = scale(u);
-u = 255*scale(u);
-u = round(u);
-u = uint8(u);
+A = scale(A);
+A = 255*scale(A);
+A = round(A);
+A = uint8(A);
 
 for  i = 1 : dim(3)
    imhere = A(:,:,i);

@@ -1,11 +1,13 @@
 function [] = readbioformatmatlab(varargin)
 % READBIOFORMATMATLAB Reads Bio-Formats like .LIF using the bfopen tool for
-%   matlab
+%   matlab. Can be downloaded from 
+%   http://www.openmicroscopy.org/site/support/bio-formats5/developers/matlab-dev.html
+%   The folder with the tools must be placed in the matlab path prior to
+%   usage.
 %
 %   READBIOFORMATMATLAB(INFILE) reads Bio-Formats like .lif specified in the cell array
 %   INFILE using the command line tools. If there is only one file the file 
 %   name can be given as a string.
-%   SHOWINF and BFCONVERT from http://loci.wisc.edu/bio-formats/downloads.
 %   Data is saved as stack1, stack2, and so on, in a folder with subscript 
 %   '-matlab'. Data is saved both as .tif and .mat
 %
@@ -56,7 +58,11 @@ for i = 1 : numel(liffile)
     disp(msg);
     
     % read the data
-    data = bfopen(liffile{i});
+    try
+        data = bfopen(liffile{i});
+    catch
+        
+    end;
     nseries = size(data,1);
     
     msg = ['Number of series: ' int2str(nseries)];

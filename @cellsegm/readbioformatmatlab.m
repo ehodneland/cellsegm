@@ -61,7 +61,8 @@ for i = 1 : numel(liffile)
     try
         data = bfopen(liffile{i});
     catch
-        
+        msg = ['Could not open ' liffile{i}];
+        disp(msg);
     end;
     nseries = size(data,1);
     

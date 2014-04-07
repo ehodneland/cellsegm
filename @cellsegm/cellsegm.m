@@ -42,6 +42,7 @@ classdef cellsegm
       show4D(im);
       printcell(fid,A,thmin);
       A = mat2celldirect(A);
+      panelstruct(varargin);
    end 
       
 end

@@ -35,8 +35,8 @@ prm.illum = 0;
 prm.getminima.nucleus.segmct.thrs.th = 0.7;
 
 % split markers
-prm.getminima.nucleus.split = 1;
-prm.getminima.nucleus.splitth = 1;
+prm.getminima.nucleus.segmct.split = 1;
+prm.getminima.nucleus.segmct.splitth = 1;
 
 % Subtract the nucleus channel from the surface staining to reduce the
 % cross talk effect. 

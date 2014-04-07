@@ -165,6 +165,8 @@ elseif isequal(prm.level,'strong')
     prm.plane = ind;
 else
     prm.plane = max(round(prm.level * dim(3)),1);
+    prm.plane = min(dim(3),prm.plane);
+    prm.plane = max(1,prm.plane);
 end;
 
 % adjust for not using all planes for finding minima

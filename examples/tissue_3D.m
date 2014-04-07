@@ -50,7 +50,8 @@ prm.segmsurf.classifycells.intborder = 120;
 prm.segmsurf.classifycells.meanintbck = 1;
 
 % use the strongest signal plane for finding minima
-prm.segmsurf.getminima.level = 'strong';
+% prm.segmsurf.getminima.level = 'strong';
+prm.segmsurf.getminima.automated.level = 0.1;
 
 % run cell segmentation with no parameter file
 cellsegm.cellsegmentation('../data/tissue',3,4,1,Inf,0.1,1.7,'','prm',prm);

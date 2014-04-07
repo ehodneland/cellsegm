@@ -38,8 +38,8 @@ prm.getminima.nucleus.split = 1;
 prm.getminima.nucleus.splitth = 1;
 
 % edge enhancing diffusion with a suitable threshold
-prm.getminima.nucleus.smoothim.method = 'eed';
-prm.getminima.nucleus.smoothim.eed.kappa = 0.05;
+prm.getminima.nucleus.segmct.smoothim.method = 'eed';
+prm.getminima.nucleus.segmct.smoothim.eed.kappa = 0.05;
 
 % method for markers
 prm.getminima.method = 'nucleus';

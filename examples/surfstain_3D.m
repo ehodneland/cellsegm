@@ -39,3 +39,8 @@ prm.getminima.level = 0.45;
 % segmentation
 [cellbw,wat,imsegmout,minima,minimacell,info] = ...
     cellsegm.segmsurf(imsegm,20,100,'prm',prm);
+
+cellsegm.show(imsegm,1);title('Raw image');axis off;
+cellsegm.show(minima,2);title('Markers');axis off;
+cellsegm.show(wat,3);title('Watershed image');axis off;
+cellsegm.show(cellbw,4);title('Cell segmentation');axis off;

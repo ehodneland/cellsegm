@@ -44,7 +44,7 @@ for i = 1 : nargin
     catch
     end;
 end;
-dim
+
 prm.plane = round(dim(3)/2);
 prm.time = 1;
 prm.cont = 0;

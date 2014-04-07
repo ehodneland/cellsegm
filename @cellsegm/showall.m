@@ -55,7 +55,7 @@ if P > 1
     while 1        
         for j = 1 : numim
             F = f{j};
-            show(F(:,:,:,t),j);            
+            cellsegm.show(F(:,:,:,t),j);            
         end;
         msg = ['Time point ' int2str(t)];
         disp(msg);
@@ -85,9 +85,9 @@ else
             F = f{j};
 
             if col == 0
-                show(F(:,:,niter),j)        
+                cellsegm.show(F(:,:,niter),j)        
             else
-                show(F(:,:,niter),j);colorbar
+                cellsegm.show(F(:,:,niter),j);colorbar
             end;
         end;
         disp(sprintf('Plane %i',niter))

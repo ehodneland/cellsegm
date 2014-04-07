@@ -32,7 +32,7 @@ prm.filterridges = 0;
 prm.illum = 0;
 
 % Lower threshold for nucleus markers
-prm.getminima.nucleus.segmct.thrs.th = 0.7;
+prm.getminima.nucleus.segmct.thrs.th = 0.5;
 
 % split markers
 prm.getminima.nucleus.segmct.split = 1;

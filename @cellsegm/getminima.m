@@ -52,6 +52,8 @@ function [minima,minimacell,prm] = getminima(varargin)
 %   Normalized plane level 0 -> 1 to make markers. 
 %                       If PRM.LEVEL = 'ALL' all planes 
 %                       are used to create make markers. 
+%                       If PRM.LEVEL = 'STRONG' the brightest plane is used
+%                       as a marker image
 %
 %
 %

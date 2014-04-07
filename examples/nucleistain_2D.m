@@ -40,7 +40,8 @@ splitth = 2;
 plane = 1;
 % cells above this threshold are split (all cells here)
 n = prmout.minvolvox;
-cellbw2 = cellsegm.splitcells(cellbw1,splitth,plane,n);
+h = [0.5 0.5 1.5];
+cellbw2 = cellsegm.splitcells(cellbw1,splitth,n,h);
 cellsegm.show(cellbw2,2);title('Cell segmentation by ADTH with splitting');axis off;
 
 %
@@ -58,5 +59,5 @@ cellsegm.show(cellbw3,3);title('Cell segmentation by THRS');axis off;
 % improving the results by splitting of cells
 splitth = 1;
 plane = 1;
-cellbw4 = cellsegm.splitcells(cellbw3,splitth,plane,n);
+cellbw4 = cellsegm.splitcells(cellbw3,splitth,n,h);
 cellsegm.show(cellbw4,4);title('Cell segmentation by THRS with splitting');axis off;

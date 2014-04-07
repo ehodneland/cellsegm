@@ -1,11 +1,10 @@
-function [cellbw] = splitcells(cellbw,splitth,plane,splitvolvox)
+function [cellbw] = splitcells(cellbw,splitth,splitvolvox,h)
 % SPLITCELLS Splitting segmented binary image of cells 
 %
-%   CELLBW = SPLITCELLS(CELLBW,SPLITTH,PLANE,MINVOLVOX) splitting the cells 
+%   CELLBW = SPLITCELLS(CELLBW,SPLITTH,MINVOLVOX,H) splitting the cells 
 %   in CELLBW and the splitting threshold in SPLITTH with the voxel volume 
 %   MINVOLVOX. SPLITTH is the second argument in
-%   IMEXTENDEDMAX. PLANE is the plane where the distance 
-%   function in 2D is computed, although the code runs for 3D data. 
+%   IMEXTENDEDMAX. H is the voxel size. 
 %   Returning the splitted cells in the binary image CELLBW.
 %
 %   SPLITCELLS is based upon the distance function and local maxima for 
@@ -57,18 +56,18 @@ splitvolvox = round(splitvolvox);
 
 % extract the large regions what you want to split
 cellbwin = cellbw;
-cellbw = bwareaopen(cellbw,splitvolvox,6); 
-cellbwsmall = cellbwin - cellbw;
+cellbwlarge = bwareaopen(cellbw,splitvolvox,6); 
+cellbwsmall = cellbwin - cellbwlarge;
+cellbw = cellbwlarge;
 
-% extract one plane to work on
-if ~isequal(plane,'all')
-    cellbw = cellbw(:,:,plane);
-end;
+% % extract one plane to work on
+% if ~isequal(plane,'all')
+%     cellbw = cellbw(:,:,plane);
+% end;
 
 cellbw = cellbw > 0;
 % load ball1;se = getball(ball,1,1);
 % cellbwdil = imdilate(cellbw,se);
-D = bwdist(cellbw == 0);
 
 [faser,L] = bwlabeln(cellbw);
 msg = ['Number of objects due to splitting: ' int2str(L)];
@@ -79,9 +78,24 @@ if L == 0
     return;
 end;
 
+% make double for interpolation
+cellbw = double(cellbw);
+minh = min(h);
+hhr = [minh,minh,minh];
+fov = dim .* h;
+dimhr = fov./hhr;
+cellbwhr = imresize3d(cellbw,dimhr,'linear');
+cellbwhr = cellbwhr > 0;
 
-cellbw = logical(cellbw);
-distim = D;
+% distance function
+distimhr = bwdist(cellbwhr == 0);
+
+% some smooothing of the distances
+distimhr = cellsegm.smoothim(distimhr,'gaussian');
+
+% resize back
+distim = imresize3d(distimhr,[512,512,25],'linear');
+
 vis = 0;
 if vis    
     disp('After distance function')
@@ -97,7 +111,7 @@ maximumbw = imopen(maximumbw,se);
 % background
 if vis
     disp('After imextendedmax');
-    showall(cellbw,maximumbw);
+    showall(cellbw,distim,maximumbw);
 end;
 
 % find the Euclidean distances between the maxima
@@ -112,7 +126,7 @@ division = division.*cellbw;
 cellbw(division == 1) = 0;
 
 % large and small regions
-cellbw = cellbw | cellbwsmall;
+cellbw = cellbwsmall | cellbw;
 
 % vis = 1
 if vis

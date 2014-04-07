@@ -164,10 +164,10 @@ if ~isfield(prm,'splitminvolvox')
     d = (prm.minvolvox + prm.maxvolvox)/4;
     prm.splitvolvox = prm.minvolvox + d;
 end;
-% Plane for splitting: Default: One third of the stack height
-if ~isfield(prm,'splitplane')
-    prm.splitplane = ceil(dim(3)/3);    
-end;
+% % Plane for splitting: Default: One third of the stack height
+% if ~isfield(prm,'splitplane')
+%     prm.splitplane = ceil(dim(3)/3);    
+% end;
 msg = ['This is SEGMCT using settings'];
 disp(msg);
 printstructscreen(prm);
@@ -236,7 +236,7 @@ end;
 if prm.split
     msg = ['Splitting cells using distance function'];
     disp(msg);    
-    [cellbw] = cellsegm.splitcells(cellbw,prm.splitth,prm.splitplane,prm.splitvolvox);   
+    [cellbw] = cellsegm.splitcells(cellbw,prm.splitth,prm.splitvolvox,prm.h);   
 end;
 
 % remove the small cells

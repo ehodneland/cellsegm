@@ -21,3 +21,6 @@ cellsegm.readbioformat('myfile.lif');
 
 % saved as only matlab .mat format
 cellsegm.readbioformat('myfile.lif','mat');
+
+% saved as only matlab .mat format
+cellsegm.readbioformatmatlab('myfile.lif','mat');

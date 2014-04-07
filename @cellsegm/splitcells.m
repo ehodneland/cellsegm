@@ -94,7 +94,7 @@ distimhr = bwdist(cellbwhr == 0);
 distimhr = cellsegm.smoothim(distimhr,'gaussian');
 
 % resize back
-distim = imresize3d(distimhr,[512,512,25],'linear');
+distim = cellsegm.imresize3d(distimhr,[512,512,25],'linear');
 
 vis = 0;
 if vis    

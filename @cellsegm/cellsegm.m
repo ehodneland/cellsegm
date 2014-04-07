@@ -43,6 +43,7 @@ classdef cellsegm
       printcell(fid,A,thmin);
       A = mat2celldirect(A);
       panelstruct(varargin);
+      [u] = imresize3d(im,g,method);
    end 
       
 end

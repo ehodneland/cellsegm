@@ -80,10 +80,14 @@ end;
 
 % make double for interpolation
 cellbw = double(cellbw);
+
+% convert to high resolution (hr) image for bwdist
 minh = min(h);
 hhr = [minh,minh,minh];
 fov = dim .* h;
 dimhr = fov./hhr;
+
+% resize to high resolution
 cellbwhr = imresize3d(cellbw,dimhr,'linear');
 cellbwhr = cellbwhr > 0;
 
@@ -91,10 +95,13 @@ cellbwhr = cellbwhr > 0;
 distimhr = bwdist(cellbwhr == 0);
 
 % some smooothing of the distances
-distimhr = cellsegm.smoothim(distimhr,'gaussian');
+clear prmin;
+prmin.gaussian.stdev = 3;
+prmin.gaussian.diameter = 9;
+distimhr = cellsegm.smoothim(distimhr,'gaussian','prm',prmin);
 
 % resize back
-distim = cellsegm.imresize3d(distimhr,[512,512,25],'linear');
+distim = cellsegm.imresize3d(distimhr,dim,'linear');
 
 vis = 0;
 if vis    

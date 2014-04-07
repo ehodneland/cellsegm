@@ -349,19 +349,24 @@ end;
 
 % remove small background minima
 % no less than maximum cell volume in each background area
-th = round(10*prm.maxvolvox/dim(3));
+th = round(prm.maxvolvox);
 for i = 1 : dim(3)
     minimabck(:,:,i) = bwareaopen(minimabck(:,:,i),th);
 end;
 % minimabck = bwareaopen(minimabck,round(prm.minvolvox/8));
 
-
-% remove lower ones
-[range,minz,maxz] = bwrange(minimacell);
-minimabck(:,:,1:maxz) = 0;
-
 if vis
-    'After remove small and removing lower ones'
+    'After remove small'
+    showall(imhere,minimabck,minimacell)
+end;
+
+% remove lower ones to avoid overlap with nucleus markers
+[range,minz,maxz] = bwrange(minimacell);
+if maxz < dim(3)
+    minimabck(:,:,1:maxz) = 0;
+end;
+if vis
+    'After removing lower ones'
     showall(imhere,minimabck,minimacell)
 end;
 

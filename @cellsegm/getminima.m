@@ -45,8 +45,8 @@ function [minima,minimacell,prm] = getminima(varargin)
 %   Specific fields in PRM for PRM.METHOD = 'nucleus'
 %   PRM.NUCLEUS*      : Any option to SEGMCT for segmentation of the
 %                       nuclei. See SEGMCT for options. Default settings
-%                       are PRM.NUCLEUSMETHOD = 'itth', PRM.NUCLEUSSPLIT =
-%                       0, PRM.NUCLEUSITTH = 1.
+%                       are PRM.NUCLEUS.METHOD = 'itth', PRM.NUCLEUS.SPLIT =
+%                       0, PRM.NUCLEUS.ITTH = 1.
 %
 %   PRM.LEVEL (default = 0.3)
 %   Normalized plane level 0 -> 1 to make markers. 

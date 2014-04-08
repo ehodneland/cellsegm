@@ -277,7 +277,7 @@ printstructscreen(prm);
 % pixel size
 prm.getminima.h = prm.h;
 prm.classifycells.h = prm.h;
-prm.smoothimh = prm.h;
+prm.smoothim.h = prm.h;
 
 % gpu for smoothing
 prm.smoothim.gpu = prm.gpu;

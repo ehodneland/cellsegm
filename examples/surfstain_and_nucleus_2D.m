@@ -34,8 +34,8 @@ prm.filterridges = 0;
 prm.getminima.nucleus.segmct.thrs.th = 0.70;
 
 % split markers
-prm.getminima.nucleus.split = 1;
-prm.getminima.nucleus.splitth = 1;
+prm.getminima.nucleus.segmct.split = 1;
+prm.getminima.nucleus.segmct.splitth = 1;
 
 % edge enhancing diffusion with a suitable threshold
 prm.getminima.nucleus.segmct.smoothim.method = 'eed';

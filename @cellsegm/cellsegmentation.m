@@ -512,6 +512,7 @@ try
     prm.h = D.h;
 catch
     % use default
+    warning('Could not read proper voxel size, check your data');
 end;
 
 clear D;

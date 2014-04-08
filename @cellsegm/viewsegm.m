@@ -255,10 +255,10 @@ handle.up.plane.handle = uicontrol('Parent',handle.control.handle,'Style','Text'
     'Position',[left b w h]);
 
 % to save settings
-if isunix
-    prm.pathsettings = fullfile('home',prm.username,'.cellsegm');
-elseif ismac
+if ismac
     prm.pathsettings = fullfile('Users',prm.username,'.cellsegm');
+elseif isunix
+    prm.pathsettings = fullfile('home',prm.username,'.cellsegm');
 elseif ispc
     prm.pathsettings = fullfile('Documents and Settings',prm.username,'.cellsegm');
 end;

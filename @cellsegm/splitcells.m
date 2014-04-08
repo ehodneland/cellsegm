@@ -88,7 +88,7 @@ fov = dim .* h;
 dimhr = fov./hhr;
 
 % resize to high resolution
-cellbwhr = imresize3d(cellbw,dimhr,'linear');
+cellbwhr = cellsegm.imresize3d(cellbw,dimhr,'linear');
 cellbwhr = cellbwhr > 0;
 
 % distance function

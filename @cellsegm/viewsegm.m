@@ -329,8 +329,8 @@ while 1
     
 
     if i > stop
-        close(fig.handle);
-        close(control.handle);
+        close(handle.fig.handle);
+        close(handle.control.handle);
         return;
     end;
       

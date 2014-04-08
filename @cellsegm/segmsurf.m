@@ -375,7 +375,7 @@ Iimpose = imimposemin(imsegm,minima);
 wat = watershed(Iimpose);
 clear Iimpose
 
-if prm.mergeregions == 1
+if prm.mergefragments == 1
     % Test the significance of watershed lines, the new version
     % optlog = 1 : merge the strong lines (for CT)
     % optlog = 2 : merge the weak lines (for WGA)

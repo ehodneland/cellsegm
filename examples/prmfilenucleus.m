@@ -30,10 +30,10 @@ prm.segmsurf.getminima.method = 'nucleus';
 prm.segmsurf.getminima.nucleus.segmct.thrs.th = 0.8;
 
 % split cells in minima
-prm.segmsurf.getminima.nucleus.split = 1;
+prm.segmsurf.getminima.nucleus.segmct.split = 1;
 
 % threshold for splitting cells in minima
-prm.segmsurf.getminima.nucleus.split.th = 1;
+prm.segmsurf.getminima.nucleus.segmct.splitth = 1;
 
 % classification method
 prm.segmsurf.classifycells.method = 'minimacell';

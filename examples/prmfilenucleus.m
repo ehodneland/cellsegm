@@ -27,7 +27,7 @@ prm.segmsurf.smoothim.method = 'dirced';
 prm.segmsurf.getminima.method = 'nucleus';
 
 % threshold in minima
-prm.segmsurf.getminima.nucleus.segmct.thrs.th = 1.2;
+prm.segmsurf.getminima.nucleus.segmct.thrs.th = 0.8;
 
 % split cells in minima
 prm.segmsurf.getminima.nucleus.split = 1;

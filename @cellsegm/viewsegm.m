@@ -463,7 +463,7 @@ while 1
             plane = str2double(planenew);
         end;
     elseif isequal(choice,'classification')
-        callbckclassification(handle,wat,info);
+        callbckclassification(handle,wat,info,plane);
                
     elseif isequal(choice,'cellstatus')
                
@@ -971,14 +971,14 @@ cellbwvis(boundarybw == 1) = 0;
 
 %----------------------------------------------
 
-function [] = callbckclassification(handle,wat,info)
+function [] = callbckclassification(handle,wat,info,plane)
 
 % user defined input
 figure(handle.fig.handle);
 [y, x] = ginput(1);
 x = round(x);
 y = round(y);
-val = wat(x,y);
+val = wat(x,y,plane);
 a = info.classifycells;
 nth = numel(a.propname);
 

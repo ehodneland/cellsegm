@@ -58,12 +58,12 @@ for i = 1 : numel(liffile)
     disp(msg);
     
     % read the data
-    try
+%     try
         data = bfopen(liffile{i});
-    catch
-        msg = ['Could not open ' liffile{i}];
-        disp(msg);
-    end;
+%     catch
+%         msg = ['Could not open ' liffile{i}];
+%         disp(msg);
+%     end;
     nseries = size(data,1);
     
     msg = ['Number of series: ' int2str(nseries)];

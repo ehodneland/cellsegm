@@ -73,13 +73,15 @@ for i = 1 : numel(liffile)
     cplane = 0;
     while 1
         str = fgetl(fid);
+       
+        if isequal(str,-1)
+            break;
+        end
         s = strfind(str,'HardwareSetting|ScannerSettingRecord|dblVoxel');
         if ~isempty(s)
             c = c + 1;
             h(c) = str2double(str(s+50:end));
-            if c == 3
-                break;
-            end;
+            
         end;
         
         s = strfind(str,'Series count ');
@@ -166,12 +168,17 @@ for i = 1 : numel(liffile)
     
         % read multiple tif
         im = imreadmulttif(imload,1);
+        
+        % in case the image is in the fourth position
+        im = squeeze(im);
     
         % reorder the data in 4D stack
         im = reordermultipletif(im,nch(j));
     
-        imsave = fullfile([file '-matlab'],['stack' int2str(j) '.mat']);
-        save(imsave,'im','h');
+        if ~isempty(im)
+            imsave = fullfile([file '-matlab'],['stack' int2str(j) '.mat']);
+            save(imsave,'im','h');
+        end;
     end;
 
     % delete .tif files

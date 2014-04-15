@@ -1,9 +1,15 @@
 function [im] = reordermultipletif(imhere,nch)
 
 dim = size(imhere);
+if numel(dim) == 2
+    dim = [dim 1];
+end;
 nplane = dim(3)/nch;
+
 if round(nplane) ~= nplane
-    error('Wrong number of channels')
+    warning('Wrong number of channels')
+    im = [];
+    return;
 end;
 dim = [dim(1:2) nplane nch];            
 im = zeros(dim);

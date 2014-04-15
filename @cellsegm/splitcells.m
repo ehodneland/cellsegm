@@ -67,7 +67,7 @@ cellbw = cellbwlarge;
 
 cellbw = cellbw > 0;
 % load ball1;se = getball(ball,1,1);
-% cellbwdil = imdilate(cellbw,se);
+% cellbw = imdilate(cellbw,se);
 
 [faser,L] = bwlabeln(cellbw);
 msg = ['Number of objects due to splitting: ' int2str(L)];
@@ -102,6 +102,11 @@ distimhr = cellsegm.smoothim(distimhr,'gaussian','prm',prmin);
 
 % resize back
 distim = cellsegm.imresize3d(distimhr,dim,'linear');
+
+% distim = imcomplement(distim);
+% distim(cellbw == 0) = -Inf;
+% wat = watershed(distim);
+% showall(cellbw,distim,wat,wat > 0)
 
 vis = 0;
 if vis    

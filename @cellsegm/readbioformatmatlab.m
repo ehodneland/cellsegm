@@ -58,12 +58,12 @@ for i = 1 : numel(liffile)
     disp(msg);
     
     % read the data
-%     try
+    try
         data = bfopen(liffile{i});
-%     catch
-%         msg = ['Could not open ' liffile{i}];
-%         disp(msg);
-%     end;
+    catch
+        msg = ['Could not open ' liffile{i}];
+        disp(msg);
+    end;
     nseries = size(data,1);
     
     msg = ['Number of series: ' int2str(nseries)];
@@ -75,22 +75,22 @@ for i = 1 : numel(liffile)
         dim(1) = omeMeta.getPixelsSizeX(0).getValue(); % image width, pixels
         dim(2) = omeMeta.getPixelsSizeY(0).getValue(); % image height, pixels
         dim(3) = omeMeta.getPixelsSizeZ(0).getValue(); % number of Z slices
-        h(2) = omeMeta.getPixelsPhysicalSizeX(0).getValue(); % in µm
-        h(1) = omeMeta.getPixelsPhysicalSizeY(0).getValue(); % in µm
-        h(3) = omeMeta.getPixelsPhysicalSizeZ(0).getValue(); % in µm
+%         h(2) = omeMeta.getPixelsPhysicalSizeX(0).getValue(); % in ??m
+%         h(1) = omeMeta.getPixelsPhysicalSizeY(0).getValue(); % in ??m
+%         h(3) = omeMeta.getPixelsPhysicalSizeZ(0).getValue(); % in ??m
         
         % the hashtable
         hasht = data{j,2};
-%         h = zeros(1,3);
-%         a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelY #1');
-%         h(1) = str2double(a);
-%         a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelX #1');
-%         h(2) = str2double(a);
-%         a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelZ #1');
-%         h(3) = str2double(a);
-%         % in microns
-%         h = h*1e6;
-        nch = str2double(get(hasht,'DimensionDescription|DimID'));
+        h = zeros(1,3);
+        a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelY #1');
+        h(1) = str2double(a);
+        a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelX #1');
+        h(2) = str2double(a);
+        a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelZ #1');
+        h(3) = str2double(a);
+        % in microns
+        h = h*1e6;
+        nch = str2double(get(hasht,'HardwareSetting|ScannerSettingRecord|nChannels #1'));
         
         msg = ['Number of channels: ' int2str(nch)];
         disp(msg);

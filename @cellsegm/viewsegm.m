@@ -52,16 +52,20 @@ end;
 c = 3;
 ch = 0;
 cp = 0;
+prm.plugin.n = 0;
 while 1
     v = varargin{c};
+    
     if isnumeric(v)        
         ch = ch + 1;        
-        prm.vis(ch).ch = varargin{ch};
+        prm.vis(ch).ch = varargin{c};
         prm.nch = prm.nch + 1;                
         c = c + 1;
+        
     elseif isequal(v,'plugin')
         cp = cp + 1;        
-        prm.plugin.(varargin{c+1}).name = varargin{c+1};
+        prm.plugin.name{cp} = varargin{c+1};
+        prm.plugin.n = prm.plugin.n + 1;
         c = c + 2;
     elseif ischar(v)        
         prm.option = v;        
@@ -71,9 +75,6 @@ while 1
         break;
     end;
 end;
-f = fieldnames(prm.plugin);
-prm.plugin.name = f;
-prm.plugin.n = numel(f);
 
 % fig.pos = [400 50 500 500];
 % fig.handle = figure('Position',fig.pos);
@@ -411,7 +412,7 @@ while 1
 
                    
         catch
-            msg = ['Could not load ' name];
+            msg = ['Could not load ' pathstack];
             disp(msg);
             if isequal(choice,'previous')
                 i = i - 1;
@@ -1311,8 +1312,10 @@ if isequal(v,'on')
 end;
 
 % Load any plugins
-for i = 1 : numel(prm.plugin)
-    prm = plugindonorcell(handle,prm);
+for i = 1 : prm.plugin.n
+    if isequal(prm.plugin.name{i},'plugindonorcell')
+        prm = plugindonorcell(handle,prm);
+    end;
 end;
 
 

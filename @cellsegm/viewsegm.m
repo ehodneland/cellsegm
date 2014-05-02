@@ -39,27 +39,41 @@ function [] = viewsegm(varargin)
 
 clear choice ch;
 global choice 
-global ch;
+% global ch;
 
 start = varargin{1};
 stop = varargin{2};
 prm.vis(1).ch = varargin{3};
-prm.vis(2).ch = varargin{4};
 prm.nch = 0;
 prm.option = 'segm';
 if nargin < 3
     error('Tou must specify an image channel');
 end;
-for j = 3 : nargin
-    v = varargin{j};
-    if isnumeric(v)
-        prm.vis(j-2).ch = varargin{j};
-        prm.nch = prm.nch + 1;
-    elseif ischar(v)
-        prm.option = v;
+c = 3;
+ch = 0;
+cp = 0;
+while 1
+    v = varargin{c};
+    if isnumeric(v)        
+        ch = ch + 1;        
+        prm.vis(ch).ch = varargin{ch};
+        prm.nch = prm.nch + 1;                
+        c = c + 1;
+    elseif isequal(v,'plugin')
+        cp = cp + 1;        
+        prm.plugin.(varargin{c+1}).name = varargin{c+1};
+        c = c + 2;
+    elseif ischar(v)        
+        prm.option = v;        
+        c = c + 1;
+    end;
+    if c > nargin
+        break;
     end;
 end;
-
+f = fieldnames(prm.plugin);
+prm.plugin.name = f;
+prm.plugin.n = numel(f);
 
 % fig.pos = [400 50 500 500];
 % fig.handle = figure('Position',fig.pos);
@@ -321,12 +335,14 @@ while 1
     
     choice = '';
     
+    pathbase = [ 'stack' int2str(i)];
     if isequal(prm.option,'segm')
-         name = [ 'stack' int2str(i) '-segm.mat'];
-     elseif isequal(prm.option,'raw')
-         name = [ 'stack' int2str(i) '.mat'];
-     end;
-    
+        pathstack = [ pathbase '-segm.mat'];
+    elseif isequal(prm.option,'raw')
+        pathstack = [ pathbase '.mat'];
+    end;
+    prm.pathstack = pathstack;
+    prm.pathbase = pathbase;
 
     if i > stop
         close(handle.fig.handle);
@@ -338,9 +354,8 @@ while 1
     if ne(i,iold)
         
         try
-            D = load(name);
-            disp(sprintf('Loading %s',name));
-            pathstack = name;
+            D = load(pathstack);
+            disp(sprintf('Loading %s',pathstack));
             im = double(D.im);
             dim = size(D.im);
             if numel(dim) == 2
@@ -382,6 +397,9 @@ while 1
             cline = 0;
             linedata.x = [];
             linedata.y = [];
+            
+            % plugin
+            prm.plugin.plugindonorcell.loaded = 0;
             
             % cellstatus
             handle.cellstatus.value = [];
@@ -429,7 +447,7 @@ while 1
     % show images
     prm.plane = plane;
     prm.dim = dim;   
-    handle = showimagecells(im,linedata,cellbwvis,wat,minima,prm,handle);
+    [handle,prm] = showimagecells(im,linedata,cellbwvis,wat,minima,prm,handle);
     set(handle.fig.handle,'WindowKeyPressFcn',@callbackreading);
 %     set(handle.fig.handle,'WindowKeyPressFcn',@callbackreading);
     
@@ -1069,7 +1087,7 @@ save(pathstack,'cellbw','info','-append');
 
 %--------------------------------------------------------------------
 
-function [handle] = showimagecells(im,linedata,cellbw,wat,minima,prm,handle)
+function [handle,prm] = showimagecells(im,linedata,cellbw,wat,minima,prm,handle)
 
 imscale = handle.imscale;
 
@@ -1118,6 +1136,12 @@ sc = cell(prm.nch,1);
 plane = min(prm.plane,prm.dim(3));
 plane = max(plane,1);
 
+
+
+%
+% Show raw images in the upper row
+%
+
 % these planes
 implane = cell(prm.nch,1);
 for j = 1 : prm.nch
@@ -1130,7 +1154,6 @@ b = 0.5;
 h = 0.45;
 dl = 1/prm.nch;
 
-% raw images with scaling
 figure(handle.fig.handle);
 for j = 1 : prm.nch        
         
@@ -1152,10 +1175,13 @@ for j = 1 : prm.nch
     end;
     
     figure(handle.fig.handle);
-    
-    subpl.handle(1,j) = subplot('Position',pos{j},'Parent',handle.fig.handle);imshow(implane{j},sc{j});
+    handle.subpl(1,j).data = implane{j};    
+    handle.subpl(2,j).sc = sc{j};
+    % same scaling for lower row
+    handle.subpl(1,j).sc = sc{j};
+    handle.subpl(1,j).handle = subplot('Position',pos{j},'Parent',handle.fig.handle);imshow(handle.subpl(1,j).data,handle.subpl(1,j).sc);
     colormap(gray);drawnow;axis off;axis image;
-    subpl.pos{1,j} = pos{j};
+    handle.subpl(1,j).pos = pos{j};
     if isequal(prm.vis(j).ch,'imsegm')
         axis image;title(['Channel ' prm.vis(j).ch])
     else
@@ -1164,10 +1190,13 @@ for j = 1 : prm.nch
     l = l + dl;
 end;
 
+%
+% Show the nuclei and lines of segmentation in the lower row
+%
+
 cellbwplane = double(cellbw(:,:,plane));
 perimplane = bwperim(cellbwplane);
 minimaplane = minima(:,:,plane);
-
 dim = size(cellbwplane);
 Dim = [dim 3];
 figure(handle.fig.handle);
@@ -1175,18 +1204,19 @@ for j = 1 : prm.nch-1
     
     % overlay image
     implane1 = implane{j};
-    implane1(implane1 < sc{j}(1)) = sc{j}(1);
-    implane1(implane1 > sc{j}(2)) = sc{j}(2);
+    sc = handle.subpl(1,j).sc;
+    implane1(implane1 < sc(1)) = sc(1);
+    implane1(implane1 > sc(2)) = sc(2);
     implane1 = scale(implane1);
     
     implane2 = implane{j};
-    implane2(implane2 < sc{j}(1)) = sc{j}(1);
-    implane2(implane2 > sc{j}(2)) = sc{j}(2);    
+    implane2(implane2 < sc(1)) = sc(1);
+    implane2(implane2 > sc(2)) = sc(2);
     implane2 = scale(implane2);
     
     implane3 = implane{j};
-    implane3(implane3 < sc{j}(1)) = sc{j}(1);
-    implane3(implane3 > sc{j}(2)) = sc{j}(2);    
+    implane3(implane3 < sc(1)) = sc(1);
+    implane3(implane3 > sc(2)) = sc(2);
     implane3 = scale(implane3);
     
     % cell boundaries as red
@@ -1205,15 +1235,22 @@ for j = 1 : prm.nch-1
     rgboverlayplane = uint8(round(rgboverlayplane*255));    
     p = pos{j};
     p(2) = 0.01;
-    subpl.handle(2,j) = subplot('Position',p,'Parent',handle.fig.handle);imagesc(rgboverlayplane);colormap(gray);drawnow;axis off;axis image;
-    axis image;title('Overlay image, markers (blue), segmentation (red)');    
-    subpl.pos{2,j} = p;
+    handle.subpl(2,j).data = rgboverlayplane;
+    sc = [0 255];
+    handle.subpl(2,j).sc = sc;
+    handle.subpl(2,j).pos = p;
+    handle.subpl(2,j).handle = subplot('Position',p,'Parent',handle.fig.handle);imshow(handle.subpl(2,j).data,handle.subpl(2,j).sc);
+    colormap(gray);drawnow;axis off;axis image;axis image;title('Overlay image, markers (blue), segmentation (red)');    
+%     subpl.pos{2,j} = p;
 end;
 
 % cellbw image
 watplane = wat(:,:,plane);
 cellbwplane(watplane == 0) = 0.5;
 
+%
+% Show the cell segmentation
+%
 p = pos{end};
 p(2) = 0.01;
 % value = get(handle.cellstatus.watval.handle,'String');
@@ -1222,27 +1259,41 @@ p(2) = 0.01;
 %     cellbwplane(watplane == value) = 0.5;
 % end;
 figure(handle.fig.handle);
-subpl.handle(2,end) = subplot('Position',p,'Parent',handle.fig.handle);imagesc(cellbwplane);colormap(gray);drawnow;axis off;axis image;
+% make RGB of this to enable colored overlays
+for i = 2 : 3
+    cellbwplane(:,:,i) = cellbwplane(:,:,1);
+end;
+handle.subpl(2,end).data = cellbwplane;
+handle.subpl(2,end).sc = [0 1];
+handle.subpl(2,end).pos = p;
+handle.subpl(2,end).handle = subplot('Position',handle.subpl(2,end).pos,'Parent',handle.fig.handle);imshow(handle.subpl(2,end).data,handle.subpl(2,end).sc);
+colormap(gray);drawnow;axis off;axis image;
 axis image;title('Found cells');
-subpl.pos{2,end} = p;
-handle.subpl = subpl;
+
+
+
+%
+% Show lines
+%
 
 % make lines
-for i = 1 : size(subpl.handle,1)
-    for j = 1 : size(subpl.handle,2)
+for i = 1 : size(handle.subpl,1)
+    for j = 1 : size(handle.subpl,2)
         for k = 1 : numel(linedata.x)
             x = linedata.x{k};
             y = linedata.y{k};
             z = linedata.z{k};
             if plane == z(1)
-                subplot(subpl.handle(i,j));
+                subplot(handle.subpl(i,j).handle);
                 line(y,x,'Color','g');                      
             end;
         end;
     end;
 end;
 
-% image to draw on
+%
+% Show image to draw on
+%
 v = get(handle.draw.handle,'Visible');
 if isequal(v,'on')
     % visible
@@ -1257,6 +1308,11 @@ if isequal(v,'on')
             line(y,x,'Color','g');                      
         end;
     end;
+end;
+
+% Load any plugins
+for i = 1 : numel(prm.plugin)
+    prm = plugindonorcell(handle,prm);
 end;
 
 

@@ -92,6 +92,18 @@ for i = 1 : numel(liffile)
         h = h*1e6;
         nch = str2double(get(hasht,'HardwareSetting|ScannerSettingRecord|nChannels #1'));
         
+        if isnan(nch) || sum(isnan(h)) == 3
+            warning(['Could not read hashtable from ' int2str(j)]);
+            continue;
+        end;
+        
+        % stage position
+        get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos x #1')
+        pause
+        pos(1) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos x #1'));
+        pos(2) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos y #1'));
+        pos(3) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos z #1'));
+        
         msg = ['Number of channels: ' int2str(nch)];
         disp(msg);
 
@@ -101,6 +113,10 @@ for i = 1 : numel(liffile)
 
         msg = ['Voxel size: ' num2str(h)];
         disp(msg);
+        
+        msg = ['Position: ' num2str(pos)];
+        disp(msg);
+        
 
         nimages = size(data{j,1},1);
         imtif = zeros([dim(1:2),nimages]);
@@ -120,7 +136,7 @@ for i = 1 : numel(liffile)
         pathsave = fullfile(foldersave,['stack' int2str(j) '.mat']);
         msg = ['Saving ' pathsave];
         disp(msg);
-        save(pathsave,'im','h');
+        save(pathsave,'im','h','pos');
         
         % save as tif also
         if isequal(format,'all')

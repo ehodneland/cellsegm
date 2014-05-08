@@ -296,7 +296,7 @@ function [minimabck] = getbackground(imsegm,minimacell,prm)
 
 
 vis = 0;
-% save test
+
 
 dim = size(imsegm);
 if numel(dim) == 2

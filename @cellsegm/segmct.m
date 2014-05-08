@@ -138,8 +138,6 @@ for i = 4 : 2 : nargin
             prm = mergeinputpar(prm,prmin);            
     end;
 end;
-disp('Segmentation by SEGMCT.M');
-[M N O] = size(im);
 
 if O == 1 
     conn = 8;
@@ -168,7 +166,7 @@ end;
 % if ~isfield(prm,'splitplane')
 %     prm.splitplane = ceil(dim(3)/3);    
 % end;
-msg = ['This is SEGMCT using settings'];
+msg = ['This is ' upper(mfilename) ' using settings'];
 disp(msg);
 printstructscreen(prm);
 

@@ -30,6 +30,7 @@ classdef cellsegm
       readbioformat(varargin);
       readbioformatmatlab(varargin);
       [cellbw,wat,imsegm,prmout] = segmct(varargin);
+      [cellbw,wat,imsegm,prmout] = segmneuron(varargin);      
       [cellbw,wat,imsegm,minima,minimacell,info] = segmsurf(varargin);
       [im] = smoothim(varargin);
       [cellbw] = splitcells(cellbw,splitth,splitvolvox,h);

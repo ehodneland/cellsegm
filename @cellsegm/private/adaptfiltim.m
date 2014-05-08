@@ -1,3 +1,4 @@
+function [thim] = adaptfiltim(varargin)
 %   ADAPTFILTIIM Performs adaptive filtering of image
 %
 %   ADAPTFILTIIM(I,RAD,D,H) Adaptive filtering on I, RAD defines the filter size 
@@ -26,7 +27,7 @@
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
 %
-function [thim] = adaptfiltim(varargin)
+
 
 im = varargin{1};
 rad = varargin{2};

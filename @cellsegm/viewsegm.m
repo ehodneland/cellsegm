@@ -625,8 +625,9 @@ switch(evnt.Key)
         choice = '';
 end
 %---------------------------------------------
-function [] = cellstatuscoordupdate(src,evnt,handle,handlesubpl,wat,plane,linedata,im,cellbw,minima,prm)
+function [] = cellstatuscoordupdate(src,evnt,handle,wat,plane,cellbw)
      
+handlesubpl = handle.subpl(1,1).handle;
 v = get(handlesubpl,'CurrentPoint');
 w2 = round(v(1,1));
 w1 = round(v(1,2));
@@ -664,7 +665,7 @@ if draw
         cellbwplane(watplane == value) = 0.5;
     end;
     figure(handle.fig.handle);
-    subplot('Position',handle.subpl.pos{2,end},'Parent',handle.fig.handle);
+    subplot('Position',handle.subpl(2,end).pos,'Parent',handle.fig.handle);
     imagesc(cellbwplane);axis off;colormap(gray);drawnow;axis image;
     axis image;title('Found cells');
 end;
@@ -686,7 +687,8 @@ function [info,prm,cellbw,cellbwvis] = callbckcellstatus(wat,cellbw,cellbwvis,in
 
 h = handle.fig.handle;                    
 uistate = uisuspend(h);
-set(h,'WindowButtonMotionFcn',{@cellstatuscoordupdate,handle,handle.subpl.handle(1,1),wat,plane,linedata,im,cellbw,minima,prm});
+
+set(h,'WindowButtonMotionFcn',{@cellstatuscoordupdate,handle,wat,plane,cellbw});
 set(h,'pointer','Crosshair');
 set(h,'WindowButtonDownFcn',{@cellstatuscoordselect});
 uiwait(h);

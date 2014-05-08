@@ -139,7 +139,7 @@ for i = 4 : 2 : nargin
     end;
 end;
 
-if O == 1 
+if dim(3) == 1 
     conn = 8;
 else
     conn = 26;

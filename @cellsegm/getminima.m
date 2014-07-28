@@ -39,7 +39,7 @@ function [minima,minimacell,prm] = getminima(varargin)
 %
 %   Specific settings for PRM.METHOD = 'automated':
 %
-%   PRM.AUTOMATEDADFILTTH (default = 0.01)
+%   PRM.AUTOMATED.ADFILTTH (default = 0.01)
 %   Threshold in adaptive filtering. Default 0.01
 %
 %   Specific fields in PRM for PRM.METHOD = 'nucleus'
@@ -126,6 +126,8 @@ prm.just = 0.9;
 
 % the threshold for the adaptive filter to find the minima(0.01-0.03)
 prm.automated.adth = 0.01;
+% the dimension of adaptive filter
+prm.automated.filtdim = 20;
 
 % settings for segmct in nucleus segmentation
 prm.nucleus.method = 'thrs';
@@ -480,8 +482,6 @@ vis = 0;
 
 dim = size(im);
 
-% dimension of adaptive filter
-adaptfiltdim = 20;
 
 imhere = im(:,:,prm.plane);
 
@@ -498,7 +498,7 @@ printstructscreen(prm);
 
 % thresholding
 im = scale(im);
-thim = logical(adaptfiltim(imhere,adaptfiltdim,prm.adth,prm.h));
+thim = logical(adaptfiltim(imhere,prm.filtdim,prm.adth,prm.h));
 if vis == 1
     disp('Before remove small')
     showall(imhere,thim)

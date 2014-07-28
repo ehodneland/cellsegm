@@ -81,6 +81,7 @@ for i = 1 : numel(liffile)
         
         % the hashtable
         hasht = data{j,2};
+   
         h = zeros(1,3);
         a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelY #1');
         h(1) = str2double(a);
@@ -98,11 +99,11 @@ for i = 1 : numel(liffile)
         end;
         
         % stage position
-        get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos x #1')
-        pause
-        pos(1) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos x #1'));
-        pos(2) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos y #1'));
-        pos(3) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos z #1'));
+%         get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos x #1')
+        
+%         pos(1) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos x #1'));
+%         pos(2) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos y #1'));
+%         pos(3) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos z #1'));
         
         msg = ['Number of channels: ' int2str(nch)];
         disp(msg);
@@ -114,17 +115,22 @@ for i = 1 : numel(liffile)
         msg = ['Voxel size: ' num2str(h)];
         disp(msg);
         
-        msg = ['Position: ' num2str(pos)];
-        disp(msg);
+%         msg = ['Position: ' num2str(pos)];
+%         disp(msg);
         
 
         nimages = size(data{j,1},1);
+        nimages
+        nch = 3;
         imtif = zeros([dim(1:2),nimages]);
         for k = 1 : nimages
             imhere = data{j,1}{k};
             imtif(:,:,k) = double(imhere);
         end;
-        
+%         datahere = data(1:50);
+%         save test datahere  dim nimages imtif
+%         save('test.mat','data','-v7.3');
+%         pause
         % reorder images for matlab format
         im = reordermultipletif(imtif,nch);
         
@@ -136,7 +142,7 @@ for i = 1 : numel(liffile)
         pathsave = fullfile(foldersave,['stack' int2str(j) '.mat']);
         msg = ['Saving ' pathsave];
         disp(msg);
-        save(pathsave,'im','h','pos');
+        save(pathsave,'im','h');
         
         % save as tif also
         if isequal(format,'all')

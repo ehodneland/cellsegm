@@ -82,7 +82,7 @@ function [] = cellsegmentation(varargin)
 %   -------
 %
 %   folder = {'folder1','folder2','folder3'};    
-%   segmcell(folder,1,10,1,20,1,1,100,'myprmfile')
+%   cellsegmentation(folder,1,10,1,20,1,1,100,'myprmfile')
 % 
 %
 %   See also viewsegm

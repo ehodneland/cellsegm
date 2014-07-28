@@ -127,7 +127,7 @@ prm.just = 0.9;
 % the threshold for the adaptive filter to find the minima(0.01-0.03)
 prm.automated.adth = 0.01;
 % the dimension of adaptive filter
-prm.automated.filtdim = 20;
+prm.automated.diameter = 20;
 
 % settings for segmct in nucleus segmentation
 prm.nucleus.method = 'thrs';
@@ -498,7 +498,7 @@ printstructscreen(prm);
 
 % thresholding
 im = scale(im);
-thim = logical(adaptfiltim(imhere,prm.filtdim,prm.adth,prm.h));
+thim = logical(adaptfiltim(imhere,prm.diameter,prm.adth,prm.h));
 if vis == 1
     disp('Before remove small')
     showall(imhere,thim)

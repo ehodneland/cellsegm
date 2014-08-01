@@ -144,11 +144,11 @@ elseif isequal(method,'dirced')
     if prm.planewise
         for i = 1 : dim(3)
             imhere = im(:,:,i);
-            im(:,:,i) = dircohenh(imhere,prm.dirced.diameter,prm.h,prm.gpu);
+            im(:,:,i) = cellsegm.dircohenh(imhere,prm.dirced.diameter,prm.h,prm.gpu);
         end;
     else
         % true 3D
-         im = dircohenh(im,prm.dirced.diameter,prm.h);
+         im = cellsegm.dircohenh(im,prm.dirced.diameter,prm.h);
     end;
 
 elseif isequal(method,'eed')
@@ -156,11 +156,11 @@ elseif isequal(method,'eed')
     disp(msg);
     if prm.planewise
         for i = 1 : dim(3)
-            im(:,:,i) = edgeenhdiff(im(:,:,i),prm.eed.dt,prm.eed.maxniter,prm.eed.kappa,prm.h); 
+            im(:,:,i) = cellsegm.edgeenhdiff(im(:,:,i),prm.eed.dt,prm.eed.maxniter,prm.eed.kappa,prm.h); 
         end;
     else
         % edge enhancing diffusion
-        im = edgeenhdiff(im,prm.eed.dt,prm.eed.maxniter,prm.eed.kappa,prm.h);
+        im = cellsegm.edgeenhdiff(im,prm.eed.dt,prm.eed.maxniter,prm.eed.kappa,prm.h);
     end;
     
 elseif isequal(method,'gaussian')

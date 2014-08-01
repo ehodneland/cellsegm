@@ -230,6 +230,7 @@ for i = 1 : nstacks
     % get the image
     [im,imsegm,imnucl,prm] = getim(name,prm,i);
 
+    
     if isempty(im)
         msg = ['Could not load ' name ', continuing'];
         disp(msg);
@@ -243,7 +244,7 @@ for i = 1 : nstacks
     dim3 = dim(1:3);
 
     if dim(1) == 0 || dim(2) == 0 || dim(3) == 0        
-        error('Wrong input of empty image');
+        error('Wrong input, empty image');
         continue;
     end;
 
@@ -292,7 +293,6 @@ for i = 1 : nstacks
         error([mfilename ': Wrong option in METHOD']);
     end;
             
-    
     if prm.segmstarti > 1
         msg = ['Adding lower planes'];
         disp(msg);
@@ -519,10 +519,26 @@ clear D;
 dim = size(im);
 
 % start and stop planes in this stack
+if isequal(prm.planestart,'automatic')
+    val = zeros(dim(3),1);
+    for i = 1 : dim(3)
+        imhere = im(:,:,i,prm.segmch);
+        val(i,1) = mean(abs(imhere(:)));
+    end;
+    % start at maximum signal intensity, assuming thats the bottom of the
+    % cells
+    [~,ind] = max(val);
+    prm.planestart = ind-1;    
+end;
 prm.planestarti = max(prm.planestart,1);
-prm.planestopi = min(prm.planestop,dim(3));
+prm.planestopi = min(prm.planestop,dim(3));    
+msg = ['Starting the stack at plane ' int2str(prm.planestarti)];
+disp(msg);
+msg = ['Stopping the stack at plane ' int2str(prm.planestopi)];
+disp(msg);
 
-% ALL planes in stack
+
+% this becomes all planes in stack
 prm.planei = prm.planestarti:prm.planestopi;
 
 % all channels

@@ -120,7 +120,7 @@ for i = 1 : numel(liffile)
         
 
         nimages = size(data{j,1},1);
-        nimages
+        
         nch = 3;
         imtif = zeros([dim(1:2),nimages]);
         for k = 1 : nimages

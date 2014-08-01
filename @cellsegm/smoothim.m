@@ -128,11 +128,11 @@ if isequal(method,'ced')
     if prm.planewise
         for i = 1 : dim(3)
             imhere = im(:,:,i);
-            im(:,:,i) = cohenhdiff(imhere,prm.ced.dt,prm.ced.maxniter,prm.ced.kappa,prm.h);       
+            im(:,:,i) = cellsegm.cohenhdiff(imhere,prm.ced.dt,prm.ced.maxniter,prm.ced.kappa,prm.h);       
         end;
     else
         % true 3D
-        im = cohenhdiff(im,prm.ced.dt,prm.ced.maxniter,prm.ced.kappa,prm.h,'opt','num');       
+        im = cellsegm.cohenhdiff(im,prm.ced.dt,prm.ced.maxniter,prm.ced.kappa,prm.h,'opt','num');       
         error('Wrong option to SMPRM.SMOOTHDIM')        
     end;
     

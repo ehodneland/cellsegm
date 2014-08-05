@@ -63,7 +63,7 @@ for i = 1 : numel(liffile)
     tname = tempname;
     msg = ['showinf -nopix ''' namehere ''' >> ' tname ];
     disp(msg);
-    system(msg);
+    system(msg);    
     
     h = [];
     fid = fopen(tname,'r');
@@ -177,7 +177,7 @@ for i = 1 : numel(liffile)
     
         if ~isempty(im)
             imsave = fullfile([file '-matlab'],['stack' int2str(j) '.mat']);
-            save(imsave,'im','h');
+            save(imsave,'im','h','-v7.3');
         end;
     end;
 

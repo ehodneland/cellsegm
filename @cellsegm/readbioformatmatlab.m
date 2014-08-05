@@ -142,7 +142,7 @@ for i = 1 : numel(liffile)
         pathsave = fullfile(foldersave,['stack' int2str(j) '.mat']);
         msg = ['Saving ' pathsave];
         disp(msg);
-        save(pathsave,'im','h');
+        save(pathsave,'im','h','-v7.3');
         
         % save as tif also
         if isequal(format,'all')

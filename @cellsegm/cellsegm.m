@@ -45,6 +45,10 @@ classdef cellsegm
       A = mat2celldirect(A);
       panelstruct(varargin);
       [u] = imresize3d(im,g,method);
+      [u] = cohenhdiff(varargin);
+      [u] = edgeenhdiff(varargin);
+      [u] = dircohenh(varargin);
+      
    end 
       
 end

@@ -71,10 +71,11 @@ for i = 1 : numel(liffile)
         
     for j = 1 : nseries
         
-        omeMeta = data{j, 4};
-        dim(1) = omeMeta.getPixelsSizeX(0).getValue(); % image width, pixels
-        dim(2) = omeMeta.getPixelsSizeY(0).getValue(); % image height, pixels
-        dim(3) = omeMeta.getPixelsSizeZ(0).getValue(); % number of Z slices
+        dim = size(data{j,1}{1,1});
+%         omeMeta = data{j, 4};
+%         dim(1) = omeMeta.getPixelsSizeX(0).getValue(); % image width, pixels
+%         dim(2) = omeMeta.getPixelsSizeY(0).getValue(); % image height, pixels
+%         dim(3) = omeMeta.getPixelsSizeZ(0).getValue(); % number of Z slices
 %         h(2) = omeMeta.getPixelsPhysicalSizeX(0).getValue(); % in ??m
 %         h(1) = omeMeta.getPixelsPhysicalSizeY(0).getValue(); % in ??m
 %         h(3) = omeMeta.getPixelsPhysicalSizeZ(0).getValue(); % in ??m
@@ -91,48 +92,68 @@ for i = 1 : numel(liffile)
         h(3) = str2double(a);
         % in microns
         h = h*1e6;
-        nch = str2double(get(hasht,'HardwareSetting|ScannerSettingRecord|nChannels #1'));
+%         nch = str2double(get(hasht,'HardwareSetting|ScannerSettingRecord|nChannels #1'));
         
-        if isnan(nch) || sum(isnan(h)) == 3
-            warning(['Could not read hashtable from ' int2str(j)]);
+        if sum(isnan(h)) == 3
+            warning(['Could not read hashtable from series ' int2str(j)]);
             continue;
         end;
         
         % stage position
-%         get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos x #1')
-        
+%         get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos x #1')        
 %         pos(1) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos x #1'));
 %         pos(2) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos y #1'));
 %         pos(3) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos z #1'));
         
-        msg = ['Number of channels: ' int2str(nch)];
-        disp(msg);
-
-        nplane = dim(3);
-        msg = ['Number of planes: ' int2str(nplane)];
-        disp(msg);
-
         msg = ['Voxel size: ' num2str(h)];
         disp(msg);
         
-%         msg = ['Position: ' num2str(pos)];
-%         disp(msg);
         
-
-        nimages = size(data{j,1},1);
-        
-        nch = 3;
+        nimages = size(data{j,1},1);        
         imtif = zeros([dim(1:2),nimages]);
-        for k = 1 : nimages
-            imhere = data{j,1}{k};
+        for k = 1 : nimages            
+            imhere = data{j,1}{k,1};
             imtif(:,:,k) = double(imhere);
         end;
-%         datahere = data(1:50);
-%         save test datahere  dim nimages imtif
-%         save('test.mat','data','-v7.3');
-%         pause
-        % reorder images for matlab format
-        im = reordermultipletif(imtif,nch);
+
+        % reorder data into an array
+        str = data{j,1}{1,2};
+        indplane = strfind(str,'plane');
+        str = str(indplane:end);
+        str = [str ';'];
+        indslash = strfind(str,'/');
+        indscolon = strfind(str,';');
+        try
+            zmax = str2double(str(indslash(2)+1:indscolon(2)-1));
+        catch
+            zmax = 1;
+        end;
+        try
+            cmax = str2double(str(indslash(3)+1:indscolon(3)-1));
+        catch
+            cmax = 1;
+        end;
+        try
+            tmax = str2double(str(indslash(4)+1:indscolon(4)-1));
+        catch
+            tmax = 1;            
+        end;
+
+        msg = ['Number of planes: ' int2str(zmax)];
+        disp(msg);
+
+        msg = ['Number of time points: ' int2str(tmax)];
+        disp(msg);
+
+        msg = ['Number of channels: ' int2str(cmax)];
+        disp(msg);        
+
+        % reshape image
+        imtif2 = imtif(:);        
+        im = reshape(imtif2,dim(1),dim(2),zmax,tmax,cmax);
+        clear imtif2;
+        im = squeeze(im);
+                
         
         % save file
         foldersave = fullfile(folder,[file '-matlab']);
@@ -151,6 +172,7 @@ for i = 1 : numel(liffile)
             disp(msg);
             imwritemulttif(pathsave,imtif);
         end;
+        clear imtif;
         
     end;
     

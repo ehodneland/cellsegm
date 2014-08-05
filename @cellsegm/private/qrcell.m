@@ -76,7 +76,7 @@ else
         
         % Householder transformation
         I = eyecell(m-j+1,dimim);
-        H{j} = outerprodcell(v);
+        H{j} = outerprodcell(v,v);
         H{j} = multconstcell(H{j},-beta);
         H{j} = sumcell(I,H{j});
 

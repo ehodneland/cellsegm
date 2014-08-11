@@ -252,10 +252,7 @@ for i = 1 : nstacks
         disp(msg);
         continue;
     end;
-    
-%     % information to return
-%     info = [];  
-    
+        
     % so we dont need to repeat plane for this image
     imsegminput = imsegm;
 
@@ -292,6 +289,7 @@ for i = 1 : nstacks
         error([mfilename ': Wrong option in METHOD']);
     end;
             
+    
     if prm.segmstarti > 1
         msg = ['Adding lower planes'];
         disp(msg);
@@ -311,9 +309,6 @@ for i = 1 : nstacks
         end;
     end;
     
-
-    
-%     info.prm = prm;
     wat = double(wat);    
   
     if isequal(prm.format,'mat') || isequal(prm.format,'all')
@@ -338,7 +333,6 @@ for i = 1 : nstacks
         end;
         
     end;
-
 end%for
 
 
@@ -462,8 +456,8 @@ elseif isequal(prmin.getminima.method,'automated')
 else
     error([mfilename ': Wrong minima method in GETMINIMAMETHOD']);
 end;
-
         
+
 %---------------------------------
 
 function [imnew] = repeatplane(im,start)
@@ -481,7 +475,6 @@ end;
 %-------------------------------------------------
 
 function [im,imsegm,imnucl,prm] = getim(name,prm,i)
-
 
 try
 

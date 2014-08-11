@@ -517,24 +517,26 @@ if isequal(prm.planestart,'automatic')
         imhere = im(:,:,i,prm.segmch);
         val(i,1) = mean(abs(imhere(:)));
     end;
+
+    
     % start at maximum signal intensity, assuming thats the bottom of the
     % cells
     [~,ind] = max(val);
-    prm.planestart = ind-1;    
+    planestart = ind-1;    
 end;
-prm.planestarti = max(prm.planestart,1);
+prm.planestarti = max(planestart,1);
 prm.planestopi = min(prm.planestop,dim(3));    
 msg = ['Starting the stack at plane ' int2str(prm.planestarti)];
 disp(msg);
 msg = ['Stopping the stack at plane ' int2str(prm.planestopi)];
 disp(msg);
 
-
 % this becomes all planes in stack
 prm.planei = prm.planestarti:prm.planestopi;
 
 % all channels
 im = im(:,:,prm.planei,:);
+
 
 % the image to segment
 imsegm = im(:,:,:,prm.segmch);
@@ -549,4 +551,3 @@ end;
 prm.segmstarti = max(1,prm.segmstart(i));
 
  
-   

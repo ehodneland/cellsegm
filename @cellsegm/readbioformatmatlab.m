@@ -116,55 +116,23 @@ for i = 1 : numel(liffile)
             imtif(:,:,k) = double(imhere);
         end;
 
-        % reorder data into an array
         str = data{j,1}{1,2};
-        indplane = strfind(str,'plane');
-        str = str(indplane:end);
-        str = [str ';'];
-        indslash = strfind(str,'/');
-        indscolon = strfind(str,';');
-        try
-            zmax = str2double(str(indslash(2)+1:indscolon(2)-1));
-        catch
-            zmax = 1;
-        end;
-        try
-            cmax = str2double(str(indslash(3)+1:indscolon(3)-1));
-        catch
-            cmax = 1;
-        end;
-        try
-            tmax = str2double(str(indslash(4)+1:indscolon(4)-1));
-        catch
-            tmax = 1;            
-        end;
+        key = readstr(str);
 
-        msg = ['Number of planes: ' int2str(zmax)];
+        % reorder data into an array
+        msg = ['Number of planes: ' int2str(key.Z.max)];
         disp(msg);
 
-        msg = ['Number of time points: ' int2str(tmax)];
+        msg = ['Number of time points: ' int2str(key.T.max)];
         disp(msg);
 
-        msg = ['Number of channels: ' int2str(cmax)];
+        msg = ['Number of channels: ' int2str(key.C.max)];
         disp(msg);        
 
-        % reshape image
-        imtif2 = imtif(:);        
-        im = reshape(imtif2,dim(1),dim(2),zmax,tmax,cmax);
-        clear imtif2;
-        im = squeeze(im);
-                
-        
-        % save file
+        % save file as mat file
         foldersave = fullfile(folder,[file '-matlab']);
-        [a,b,c] = mkdir(foldersave);
-        
-        % anyway save as mat format
-        pathsave = fullfile(foldersave,['stack' int2str(j) '.mat']);
-        msg = ['Saving ' pathsave];
-        disp(msg);
-        save(pathsave,'im','h','-v7.3');
-        
+        [a,b,c] = mkdir(foldersave);        
+
         % save as tif also
         if isequal(format,'all')
             pathsave = fullfile(foldersave,['stack' int2str(j) '.tif']);

@@ -140,9 +140,45 @@ for i = 1 : numel(liffile)
             disp(msg);
             imwritemulttif(pathsave,imtif);
         end;
+
+        % reshape image
+        im = zeros([dim(1:2),key.Z.max,key.T.max,key.C.max]);
+        for k = 1 : nimages
+            str = data{j,1}{k,2};
+            key = readstr(str);
+            im(:,:,key.Z.current,key.T.current,key.C.current) = imtif(:,:,k);
+        end;        
         clear imtif;
+        im = squeeze(im);
+                        
+        % anyway save as mat format
+        pathsave = fullfile(foldersave,['stack' int2str(j) '.mat']);
+        msg = ['Saving ' pathsave];
+        disp(msg);
+        save(pathsave,'im','h','-v7.3');
+        clear im;
         
     end;
     
     
 end;
+
+function [val] = readstr(str)
+str = [str ';'];
+key = {'C=','Z=','T='};
+for i = 1 : numel(key)
+    keyhere = key{i}(1);
+    str2 = str;
+    ind = strfind(str,key{i});
+    if isempty(ind)
+        val.(keyhere).current = 1;
+        val.(keyhere).max = 1;
+        continue;
+    end;
+    str2 = str2(ind:end);    
+    indslash = strfind(str2,'/');
+    indscolon = strfind(str2,';');
+    val.(keyhere).current = str2double(str2(3:indslash-1));
+    val.(keyhere).max = str2double(str2(indslash+1:indscolon-1));               
+end;
+

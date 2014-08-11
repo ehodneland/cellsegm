@@ -293,8 +293,7 @@ for i = 1 : nstacks
     if prm.segmstarti > 1
         msg = ['Adding lower planes'];
         disp(msg);
-        
-        
+                
         % fix the lower planes              
         cellbw = repeatplane(cellbw,prm.segmstarti);
         wat = repeatplane(wat,prm.segmstarti);                

@@ -217,7 +217,7 @@ end;%for
 %-------------------------------------
 
 
-function [eval] = segmentfolder(folderhere,prm)
+function [] = segmentfolder(folderhere,prm)
 
 nstacks = length(prm.stacks);
 % loop over all images
@@ -226,10 +226,10 @@ for i = 1 : nstacks
     % the stack here
     stack = prm.stacks(i);
     name = [folderhere '/'  'stack' int2str(stack)];    
-
+    
+    
     % get the image
-    [im,imsegm,imnucl,prm] = getim(name,prm,i);
-
+    [im,imsegm,imnucl,prm] = getim(name,prm,i);    
     
     if isempty(im)
         msg = ['Could not load ' name ', continuing'];
@@ -241,7 +241,6 @@ for i = 1 : nstacks
     if numel(dim) == 2
         dim = [dim 1];
     end;
-    dim3 = dim(1:3);
 
     if dim(1) == 0 || dim(2) == 0 || dim(3) == 0        
         error('Wrong input, empty image');
@@ -254,8 +253,8 @@ for i = 1 : nstacks
         continue;
     end;
     
-    % information to return
-    info = [];  
+%     % information to return
+%     info = [];  
     
     % so we dont need to repeat plane for this image
     imsegminput = imsegm;

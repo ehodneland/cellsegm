@@ -107,39 +107,55 @@ end;
 
 %----------------------------------------------------------
 
-function [r] = tnldstep2d(L,a,b,c)
+function [r] = tnldstep2d(L,a,b,c,h)
 
 % function for computing div(D*grad(u))
 % D = [a b  
 %      c d]
 
-Lpc = transim( L, 1, 0, 0 );
-        Lpp = transim( L, 1, 1, 0 );
-        Lcp = transim( L, 0, 1, 0 );
-        Lnp = transim( L, -1, 1, 0 );
-        Lnc = transim( L, -1, 0, 0 );
-        Lnn = transim( L, -1, -1, 0 );
-        Lcn = transim( L, 0, -1, 0 );
-        Lpn = transim( L, 1, -1, 0 );
-        
-        anc = transim( a, -1, 0, 0 );
-        apc = transim( a, +1, 0, 0 );
-        bnc = transim( b, -1, 0, 0 );
-        bcn = transim( b, 0, -1, 0 );
-        bpc = transim( b, +1, 0, 0 );
-        bcp = transim( b, 0, +1, 0 );
-        ccp = transim( c, 0, +1, 0 );
-        ccn = transim( c, 0, -1, 0 );
-        
-        r = -1/4 * (bnc+bcp) .* Lnp + ...
-             1/2 * (ccp+c)   .* Lcp + ...
-             1/4 * (bpc+bcp) .* Lpp + ...
-             1/2 * (anc+a)   .* Lnc - ...
-             1/2 * (anc+2*a+apc+ccn+2*c+ccp) .* L + ...
-             1/2 * (apc+a)   .* Lpc + ...
-             1/4 * (bnc+bcn) .* Lnn + ...
-             1/2 * (ccn+c)   .* Lcn - ...
-             1/4 * (bpc+bcn) .* Lpn;
+r =   (1/(2*h(1)^2))*((a + transim(a,1,0,0)).*(transim(L,1,0,0) - L) - (transim(a,-1,0,0) + a) .* (L - transim(L,-1,0,0))) ...
+    + (1/(2*h(2)^2))*((c + transim(c,0,1,0)).*(transim(L,0,1,0) - L) - (transim(c,0,-1,0) + c) .* (L - transim(L,0,-1,0))) ...
+    ...
+    + (1/(4*h(1)*h(2)))*(transim(b,1,0,0).*(transim(L,1,1,0) - transim(L,1,-1,0)) - transim(b,-1,0,0).*(transim(L,-1,1,0) - transim(L,-1,-1,0))) ...
+    ...
+    + (1/(4*h(2)*h(1)))*(transim(b,0,1,0).*(transim(L,1,1,0) - transim(L,-1,1,0)) - transim(b,0,-1,0).*(transim(L,1,-1,0) - transim(L,-1,-1,0)));
+
+
+return;
+
+% Old code, from Rein Van der Boomgard, but I think it was an error in the
+% notes (example 13 page 13 in the notes), although this code shall be ok.
+% Its the same as the one above!
+
+% Lpc = transim( L, 1, 0, 0 );
+%         Lpp = transim( L, 1, 1, 0 );
+%         Lcp = transim( L, 0, 1, 0 );
+%         Lnp = transim( L, -1, 1, 0 );
+%         Lnc = transim( L, -1, 0, 0 );
+%         Lnn = transim( L, -1, -1, 0 );
+%         Lcn = transim( L, 0, -1, 0 );
+%         Lpn = transim( L, 1, -1, 0 );
+%         
+%         anc = transim( a, -1, 0, 0 );
+%         apc = transim( a, +1, 0, 0 );
+%         
+%         bnc = transim( b, -1, 0, 0 );
+%         bcn = transim( b, 0, -1, 0 );
+%         bpc = transim( b, +1, 0, 0 );
+%         bcp = transim( b, 0, +1, 0 );
+%         
+%         ccp = transim( c, 0, +1, 0 );
+%         ccn = transim( c, 0, -1, 0 );
+%         
+%         r = -1/4 * (bnc+bcp) .* Lnp + ...
+%              1/2 * (ccp+c)   .* Lcp + ...
+%              1/4 * (bpc+bcp) .* Lpp + ...
+%              1/2 * (anc+a)   .* Lnc - ...
+%              1/2 * (anc+2*a+apc+cnc+2*c+cpc) .* L + ...
+%              1/2 * (apc+a)   .* Lpc + ...
+%              1/4 * (bnc+bcn) .* Lnn + ...
+%              1/2 * (ccn+c)   .* Lcn - ...
+%              1/4 * (bpc+bcn) .* Lpn;
 
 %----------------------------------------------------------
 

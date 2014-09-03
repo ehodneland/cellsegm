@@ -46,6 +46,7 @@ prm.h = varargin{5};
 opt = 'ana';
 prm.invdiff = [];
 prm.gpu = 0;
+prm.dim = size(u);
 for i = 6:2:nargin
     varhere = varargin{i};
     switch(varhere)
@@ -70,11 +71,13 @@ msg = ['This is ' upper(mfilename) ' using settings'];
 disp(msg);
 printstructscreen(prm);
 
+    
 dim = size(u);
 ndim = numel(dim);
 if ndim == 2
     filt1 = fspecial('gaussian',3,1);
     filt2 = fspecial('gaussian',9,5);
+
     if strcmp(opt,'ana')
         % 2D coherence enhancing analytical diffusion
         u = cohdiff2dana(u,filt1,filt2,prm.dt,prm.maxniter,prm);
@@ -87,10 +90,12 @@ if ndim == 2
     end;
 elseif ndim == 3    
     filt1 = gaussian([3 3 3],1);
-    filt2 = gaussian([9 9 3],3);
+    filt2 = gaussian([9 9 5],3);
+
     if strcmp(opt,'ana')
         % 3D coherence enhancing analytical diffusion 
-        error('Not working analytically in 3D');
+        u = cohdiff3dana(u,filt1,filt2,prm.dt,prm.maxniter,prm);
+%        error('Not working analytically in 3D');
 %         u = cohdiff3dana(u,filt1,filt2,dt,niter,prm);    
     elseif strcmp(opt,'num')
         % 3D coherence enhancing numerical diffusion 
@@ -146,10 +151,13 @@ kappa = prm.kappa;
 % iterate
 for i = 1 : niter
     
+
+    usm = imfilter(u,filt1,'replicate');
+
     % derivative
-    [Rx,Ry,Rz] = derivcentr3(u,h(1),h(2),h(3));
-    Rx = imfilter(Rx,filt1,'replicate');
-    Ry = imfilter(Ry,filt1,'replicate');    
+    [Rx,Ry,Rz] = derivcentr3(usm,h(1),h(2),h(3));
+    %Rx = imfilter(Rx,filt1,'replicate');
+    %Ry = imfilter(Ry,filt1,'replicate');    
 %     Rx = gd( u, obsscale, 1, 0 );
 %     Ry = gd( u, obsscale, 0, 1 );
     
@@ -168,12 +176,80 @@ for i = 1 : niter
     % eigenvalues
     el1 = 1/2 * (s11 + s22 - alpha);
     el2 = 1/2 * (s11 + s22 + alpha);
+
+    % factors in C matrix
+    beta = 0.001;
+    kapnum = (el1-el2).^2;
+
+    % See "Chapter 3, 3D-Coherence enhancing diffusion filtering for matrix
+    % fields" Burgeth, Weickert and "Analytic formulation for 3D diffusion
+    % tensor", Platero, Poncela
+    %c1 = max(beta, 1-exp( -(el1-el2).^2 / kappa^2));
+    c1 = beta + (1-beta)*exp(-kappa./kapnum);
+    if ~isempty(prm.invdiff)
+        c2 = prm.invdiff;
+    else
+        c2 = beta;
+    end;
+
+    % diffusion tensor
+%     eps = 1e-10;
+    d11 = 1/2*(c1+c2+(c2-c1).*(s11-s22)./(alpha + eps));
+    d12 = (c2-c1).*s12./(alpha + eps);
+    d22 = 1/2*(c1+c2 - (c2-c1).*(s11-s22)./(alpha + eps));    
+    
+    % update 
+    updateval = tnldstep2d(u,d11,d12,d22,prm.h);
+    u = u + dt*updateval;
+        
+end;
+
+%----------------------------------------------------------
+
+function [u] = cohdiff3dana(u,filt1,filt2,dt,niter,prm)
+
+h = prm.h;
+kappa = prm.kappa;
+
+% iterate
+for i = 1 : niter
+    
+    % derivative
+    [Rx,Ry,Rz] = derivcentr3(u,h(1),h(2),h(3));
+    Rx = imfilter(Rx,filt1,'replicate');
+    Ry = imfilter(Ry,filt1,'replicate');
+    Rz = imfilter(Rz,filt1,'replicate');
+%     Rx = gd( u, obsscale, 1, 0 );
+%     Ry = gd( u, obsscale, 0, 1 );
+    
+    % the elements in the structure tensor
+%     s11 = gd( Rx.^2,  intscale, 0, 0 );    
+%     s12 = gd( Rx.*Ry, intscale, 0, 0 );    
+%     s22 = gd( Ry.^2,  intscale, 0, 0 );
+
+    s11 = imfilter(Rx.^2,filt2,'replicate');
+    s12 = imfilter(Rx.*Ry,filt2,'replicate');
+    s13 = imfilter(Rx.*Rz,filt2,'replicate');
+    s22 = imfilter(Ry.^2,filt2,'replicate');
+    s23 = imfilter(Ry.*Rz,filt2,'replicate');
+    s33 = imfilter(Rz.*Rz,filt2,'replicate');
+ 
+    % the +- thing
+    alpha = sqrt( (s11-s22).^2 + 4*s12.^2 );
+
+    % eigenvalues
+    el1 = 1/2 * (s11 + s22 - alpha);
+    el2 = 1/2 * (s11 + s22 + alpha);
     
     % factors in C matrix
     beta = 0.0001;
-%     beta = 0.1;
-    c1 = max(beta, 1-exp( -(el1-el2).^2 / kappa^2));
+    kapnum = (el1-el2).^2;
 
+    % See "Chapter 3, 3D-Coherence enhancing diffusion filtering for matrix
+    % fields" Burgeth, Weickert and "Analytic formulation for 3D diffusion
+    % tensor", Platero, Poncela
+    %c1 = max(beta, 1-exp( -(el1-el2).^2 / kappa^2));
+    c1 = beta + (1-beta)*exp(-kappa./kapnum);
     if ~isempty(prm.invdiff)
         c2 = prm.invdiff;
     else
@@ -205,10 +281,11 @@ dim = size(u);
 for i = 1 : niter
     
     % derivative
-    [Rx, Ry, Rz] = derivcentr3(u,h(1),h(2),h(3));
-    Rx = imfilter(Rx,filt1,'replicate');
-    Ry = imfilter(Ry,filt1,'replicate');
-    Rz = imfilter(Rz,filt1,'replicate');
+    usm = imfilter(u,filt1,'replicate');
+    [Rx, Ry, Rz] = derivcentr3(usm,h(1),h(2),h(3));
+    %Rx = imfilter(Rx,filt1,'replicate');
+    %Ry = imfilter(Ry,filt1,'replicate');
+    %Rz = imfilter(Rz,filt1,'replicate');
 
     % construct the structure tensor
     s{1,1} = Rx.^2;
@@ -233,27 +310,73 @@ for i = 1 : niter
     s{2,3} = s{3,2};
     
     % find eigenvalues and eigenvectors by QR factorization
-    [R,D] = eigcell(s);
+    % [R,D] = eigcell(s);
+    [R,D] = eigtrig33(s);
+
     r11 = R{1,1};r12 = R{1,2};r13 = R{1,3};
     r21 = R{2,1};r22 = R{2,2};r23 = R{2,3};
     r31 = R{3,1};r32 = R{3,2};r33 = R{3,3};
-    e1 = D{1,1};e2 = D{2,2};e3 = D{3,3};    
+    e1 = D{1,1};e2 = D{2,2};e3 = D{3,3};   
+    clear R D;
+
+    % factors in C matrix   
+    beta = 0.001;
+    kapnum12 = (e1-e2).^2;
+    kapnum13 = (e1-e3).^2;
+    kapnum23 = (e2-e3).^2;
 
     
-    % factors in C matrix   
-    % 0.01
-    beta = 0.01;
-    a1 = max(beta, 1-exp( -(e1-e3).^2 / kappa^2));
-    a2 = max(beta, 1-exp( -(e2-e3).^2 / kappa^2));
-    c2 = max(a1,a2);
-    c1 = c2;
+    % See "Chapter 3, 3D-Coherence enhancing diffusion filtering for matrix
+    % fields" Burgeth, Weickert and "Analytic formulation for 3D diffusion
+    % tensor", Platero, Poncela
+    %c1 = max(beta, 1-exp( -(el1-el2).^2 / kappa^2));
+    a1 = beta + (1-beta)*exp(-kappa./(kapnum12 + eps));
+    a2 = beta + (1-beta)*exp(-kappa./(kapnum13 + eps));
+    a3 = beta + (1-beta)*exp(-kappa./(kapnum23 + eps));
+
+%     show(e1,1)
+%     show(e2,2)
+%     show(e3,3)
+%     pause
+%     show(a1,1)
+%     show(a2,2)
+%     show(a3,3)
+%     pause
+
+% 
+%     z = 15;
+%     p = 15;
+%     e1(15,p,z)
+%     e2(15,p,z)
+%     e3(15,p,z)
+%     [r11(15,p,z) r21(15,p,z) r31(15,p,z)]'
+%     [r12(15,p,z) r22(15,p,z) r32(15,p,z)]'
+%     [r13(15,p,z) r23(15,p,z) r33(15,p,z)]'
+%     pause
+    
+%     show(kapnum12,1)
+%     show(kapnum13,2)
+%     show(kapnum23,3)
+%     pause
+%    a1 = max(beta, 1-exp( -((e1-e3).^2) / kappa^2));
+%    a2 = max(beta, 1-exp( -((e2-e3).^2) / kappa^2));
+    %showall(a1,a2)
+    c1 = max(a1,a2);
+    c1 = max(a3,c1);
+    c2 = c1;
+%     show(c1,1)
+%     pause
     if ~isempty(prm.invdiff)        
         c3 = prm.invdiff;
     else
         c3 = beta;
     end;
-    
+
     % Construct the diffusion tensor
+    % NB need to transpose because the eigenvalue decomposition is actually
+    % R*D*R', not the opposite as in the pdf of nonlindiffusion!!! Its
+    % correct in the "paper" of Platero: "Analytic formulation for 3D
+    % diffusion tensor"
     D{1,1} = c1.*r11.^2 + c2.*r12.^2 + c3.*r13.^2;
     D{2,2} = c1.*r21.^2 + c2.*r22.^2 + c3.*r23.^2;
     D{3,3} = c1.*r31.^2 + c2.*r32.^2 + c3.*r33.^2;
@@ -263,13 +386,15 @@ for i = 1 : niter
     D{3,1} = c1.*r11.*r31 + c2.*r12.*r32 + c3.*r13.*r33;
     D{1,3} = D{3,1};
     D{3,2} = c1.*r21.*r31 + c2.*r22.*r32 + c3.*r23.*r33;              
-    D{2,3} = D{3,2};
+    D{2,3} = D{3,2};    
 
-
+    
     % update 
     update = tnldstep3d(u,D,prm);
     u = u + dt*update;
     
+    msg = ['Number of iterations: ' int2str(i)];
+    disp(msg);
         
 end;
 
@@ -289,17 +414,34 @@ dim = size(u);
 % iterate
 for i = 1 : niter
     
+    usm = imfilter(u,filt1,'replicate');
+   
+    
     % derivative
-    [Rx,Ry,Rz] = derivcentr3(u,h(1),h(2),h(3));
-    Rx = imfilter(Rx,filt1,'replicate');
-    Ry = imfilter(Ry,filt1,'replicate');    
+    [Rx,Ry,Rz] = derivcentr3(usm,h(1),h(2),h(3));
+    %Rx = imfilter(Rx,filt1,'replicate');
+    %Ry = imfilter(Ry,filt1,'replicate');    
 
     s11 = imfilter(Rx.^2,filt2,'replicate');
     s21 = imfilter(Rx.*Ry,filt2,'replicate');
     s22 = imfilter(Ry.^2,filt2,'replicate');
     
+%     S{1,1} = s11;
+%     S{1,2} = s21;
+%     S{2,1} = s21;
+%     S{2,2} = s22;
+%     [R,D] = eigcell(S);
+%     r11 = R{1,1};
+%     r12 = R{1,2};
+%     r21 = R{2,1};
+%     r22 = R{2,2};
+%     e1 = D{1,1};
+%     e2 = D{2,2};
+
+
     r11 = zeros(dim);
     r21 = zeros(dim);
+    r12 = zeros(dim);
     r22 = zeros(dim);
     e1 = zeros(dim);
     e2 = zeros(dim);
@@ -308,35 +450,57 @@ for i = 1 : niter
             mhere = [s11(j,k) s21(j,k);
                      s21(j,k) s22(j,k)];   
             [v,d] = eig(mhere);
-                
+%                 if j == 15
+%                     if k == 15
+%                         v
+%                         d
+%                         pause
+%                     end
+%                 end
             r11(j,k) = v(1,1);
             r21(j,k) = v(2,1);
+            r12(j,k) = v(1,2);
             r22(j,k) = v(2,2);
-            
             
             e1(j,k) = d(1,1);
             e2(j,k) = d(2,2);            
         end;
     end;
     
-
+%     z = 1;
+%     p = 17;
+%     e1(15,p,z)
+%     e2(15,p,z)
+%     [r11(15,p,z) r21(15,p,z)]'
+%     [r12(15,p,z) r22(15,p,z)]'
+%     pause
+%     
     % factors in C matrix   
-    beta = 0.01;
-    c1 = max(beta, 1-exp( -(e1-e2).^2 / kappa^2));
+    beta = 0.001;
+    kapnum = (e1-e2).^2;
+%     show(kapnum,1)
+%     pause
+    
+    % See "Chapter 3, 3D-Coherence enhancing diffusion filtering for matrix
+    % fields" Burgeth, Weickert and "Analytic formulation for 3D diffusion
+    % tensor", Platero, Poncela
+    %c1 = max(beta, 1-exp( -(el1-el2).^2 / kappa^2));
+    c1 = beta + (1-beta)*exp(-kappa./kapnum);
     if ~isempty(prm.invdiff)
         c2 = prm.invdiff;
     else
         c2 = beta;
     end;
-    
+
     % D matrix
     d11 = r11.^2.*c1+r21.^2.*c2;
-    d12 = r11.*c1.*r21+r21.*c2.*r22;
-    d22 = r21.^2.*c1+r22.^2.*c2;
+    d12 = r11.*c1.*r12+r21.*c2.*r22;
+    d22 = r12.^2.*c1+r22.^2.*c2;
 
     % update 
-    update = tnldstep2d(u,d11,d12,d22);
+    update = tnldstep2d(u,d11,d12,d22,prm.h);
     u = u + dt* update;
+
     
     msg = ['Number of iterations: ' int2str(i)];
     disp(msg);
@@ -354,6 +518,7 @@ d22 = D{2,2};
 d31 = D{3,1};
 d32 = D{3,2};
 d33 = D{3,3};
+clear D;
 
 h(1) = prm.h(1);
 h(2) = prm.h(2);

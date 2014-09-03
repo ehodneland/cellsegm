@@ -36,33 +36,25 @@ else
 end;
 if iscell(A)
     Q = eyecell(n,dimim);
-    R = eyecell(n,dimim);
 else
     Q = eye(n,n);
-    R = eye(n,n);
 end;
 
 % can increase the number of iterations if necessary
-for i = 1 : 5
-    % compute QR factorization
-    [q r] = qrcell(A); 
+for i = 1 : 15
     
+    % compute QR factorization
+    [q,r] = qrcell(A); 
+
     % flip around
     if iscell(A)
         A = matrixprodcell(r,q);
+        Q = matrixprodcell(Q,q);
     else
         A = r*q;
+        Q = Q*q;        
     end;
-    
-    % keep
-    if iscell(A)
-        Q = matrixprodcell(Q,q);
-        R = matrixprodcell(R,r);
-    else
-        Q = Q*q;
-        R = R*r;
-    end;
-        
+     
 end;
 D = A;
 V = Q;
@@ -70,15 +62,17 @@ V = Q;
 if iscell(A)
     for i = 1 : m
         for j = 1 : n
-            D{i,j} = D{i,j} .* gt(D{i,j},1e-5);
+            D{i,j} = D{i,j} .* gt(abs(D{i,j}),1e-5);
             % can get nan for zero gradients in R in coh enh diffusion,
             % means zero on the diagonal here??         
             ind = isnan(V{i,j});
             V{i,j}(ind) = 0;
+            ind = isnan(D{i,j});
+            D{i,j}(ind) = 0;
         end;
     end;
 else
-    D = D .* gt(D,1e-5);
+    D = D .* gt(abs(D),1e-5);
 end;
 D = flipud(fliplr(D));
 V = fliplr(V);

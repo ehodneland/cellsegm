@@ -46,6 +46,8 @@ prm.h = varargin{5};
 opt = 'ana';
 prm.invdiff = [];
 prm.gpu = 0;
+% inner iterations of coh diff
+prm.niterinner = 1;
 prm.dim = size(u);
 for i = 6:2:nargin
     varhere = varargin{i};
@@ -406,8 +408,10 @@ for i = 1 : niter
 
     
     % update 
-    update = tnldstep3d(u,D,prm);
-    u = u + dt*update;
+    for j = 1 : prm.niterinner
+        update = tnldstep3d(u,D,prm);
+        u = u + dt*update;
+    end;
     
     msg = ['Number of iterations: ' int2str(i)];
     disp(msg);

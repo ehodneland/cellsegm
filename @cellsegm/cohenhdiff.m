@@ -96,8 +96,8 @@ elseif ndim == 3
 
     if strcmp(opt,'ana')
         % 3D coherence enhancing analytical diffusion 
-        u = cohdiff3dana(u,filt1,filt2,prm.dt,prm.maxniter,prm);
-%        error('Not working analytically in 3D');
+        % u = cohdiff3dana(u,filt1,filt2,prm.dt,prm.maxniter,prm);
+        error('Not working analytically in 3D');
 %         u = cohdiff3dana(u,filt1,filt2,dt,niter,prm);    
     elseif strcmp(opt,'num')
         % 3D coherence enhancing numerical diffusion 
@@ -327,7 +327,7 @@ for i = 1 : niter
     s{1,3} = s{3,1};
     s{2,3} = s{3,2};
     
-    % find eigenvalues and eigenvectors by QR factorization
+    % find eigenvalues and eigenvectors
     % [R,D] = eigcell(s);
     [R,D] = eigtrig33(s);
 

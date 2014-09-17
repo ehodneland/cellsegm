@@ -13,11 +13,17 @@ function [cellbw,infocells] = classifycells(varargin)
 %   Defines the various modes of classification, with
 %   the following options:
 %
-%   PRM.MINV    
-%   Minimum volume of 3D cell. Default 3.
+%   PRM.MINVOLFULL    
+%   Minimum volume of 3D cell. Default 3. NB This parameter has the given
+%   name of "FULL" since it should be valid for a full 3D volume. If your 
+%   data is truly 3D nothing is changed about it and PRM.MINVOL = PRM.MINVOLFULL. If your
+%   data is 2D, this parameter is adjusted automatically towards a 2D
+%   volume, and a modified parameter PRM.MINVOL is created and used for
+%   classification.
 %
-%   PRM.MAXV    
-%   Maximum volume of 3D cell. Default 100.   
+%   PRM.MAXVOLFULL    
+%   Maximum volume of 3D cell. Default 100. Also see description for
+%   PRM.MINVOLFULL above for 2D/3D considerations.
 %
 %   PRM.INTINCELL     
 %   Intensity in cell. Default 0.7.

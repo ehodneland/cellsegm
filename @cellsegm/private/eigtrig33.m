@@ -6,7 +6,8 @@ function [V,D] = eigtrig33(A)
 % Returning the eigenvectors V and the eigenvalues D as cell arrays
 %
 % Taken from http://en.wikipedia.org/wiki/Eigenvalue_algorithm. Inspiration
-% can also be found in Platero et al
+% can also be found in Platero et al, "Analytic formulation for 3D
+% diffusion tensor".
 %
 %
 %   =======================================================================================

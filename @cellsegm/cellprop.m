@@ -65,16 +65,20 @@ for i = 1 : numel(cellv)
     name = 'convexarea';
     if ismember(name,propname)
         prop.convexarea(i,1) = Inf;     
+        n = maxz-minz+1;
+        v = NaN(n,1);
+        c = 0;
         for j = minz:maxz
+            c = c + 1;
             reg = reghere(:,:,j);
             reg = bwkeep(reg,1,8);
-            volreg = nnz(reg);
-            a = regionprops(double(reg),name);
-            if ~isempty(a)
-                v = volreg/a.ConvexArea;
-                prop.convexarea(i,1) = min(prop.convexarea(i,1),v);
+            volreg = nnz(reg);            
+            a = regionprops(double(reg),name);            
+            if ~isempty(a)                
+                v(c,1) = volreg/a.ConvexArea;
             end;
         end;
+        prop.convexarea(i,1) = nanmean(v);
     end;
     
     

@@ -22,7 +22,6 @@ function [prop] = cellprop(im,wat,cellv,propname,h,meanintbck)
 msg = ['This is ' upper(mfilename) ' computing cell properties'];
 disp(msg);
 
-
 voxelvol = prod(h);
 for i = 1 : numel(cellv)
     
@@ -33,12 +32,12 @@ for i = 1 : numel(cellv)
     
     % this region
     reghere = wat == cellv(i);
-    
-    % middle plane region
+
+    % the range
     [range,minz,maxz] = bwrange(reghere);
     mid = round(mean([minz maxz]));        
-    regpl = double(reghere(:,:,mid));
-    voxvolregpl = nnz(regpl);    
+    %regpl = double(reghere(:,:,mid));
+    %voxvolregpl = nnz(regpl);    
     
     % perimeter
     perim = zeros(dim);
@@ -65,33 +64,47 @@ for i = 1 : numel(cellv)
     
     name = 'convexarea';
     if ismember(name,propname)
-        prop.convexarea(i,1) = 0;
-        a = regionprops(double(regpl),name);
-        if ~isempty(a)
-            prop.convexarea(i,1) = prop.convexarea(i,1) + a.ConvexArea;
+        prop.convexarea(i,1) = Inf;     
+        for j = minz:maxz
+            reg = reghere(:,:,j);
+            reg = bwkeep(reg,1,8);
+            volreg = nnz(reg);
+            a = regionprops(double(reg),name);
+            if ~isempty(a)
+                v = volreg/a.ConvexArea;
+                prop.convexarea(i,1) = min(prop.convexarea(i,1),v);
+            end;
         end;
-        prop.convexarea(i,1) = prop.convexarea(i,1)/voxvolregpl;
     end;
     
     
     name = 'convexperim';
     if ismember(name,propname)
-        prop.convexperim(i,1) = 0;
-        [regmax,box] = boundreg(regpl,0,0);
-        a = regionprops(regmax,'ConvexImage');
+        prop.convexperim(i,1) = Inf;
+        for j = minz:maxz
+            reg = reghere(:,:,j);
+            % in case its disconnected in 2D when taking only a plane
+            reg = bwkeep(reg,1,8);
+            
+            % crop the data around the object
+            [reg,box] = boundreg(reg,0,0);
 
-        load ball1;se = getball(ball,1,1);
-        regmaxconvperim = bwperim(imerode(a.ConvexImage,se));   
+            a = regionprops(reg,'ConvexImage');
+            a.ConvexImage = double(a.ConvexImage);
+            load ball1;se = getball(ball,1,1);
+            regmaxconvperim = bwperim(imerode(a.ConvexImage,se));   
 
-        % find perimeter which is convex
-        regmaxperim = bwperim(regmax);
+            % find perimeter of original data
+            regmaxperim = bwperim(reg);
+            
+            % the convex parts of the boundary
+            load ball1;se = getball(ball,1,1);
+            regmaxconvperim = imdilate(regmaxconvperim,se) .* regmaxperim;
 
-        % the convex parts of the boundary
-        load ball1;se = getball(ball,1,1);
-        regmaxconvperim = imdilate(regmaxconvperim,se) .* regmaxperim;
-
-        % the ratio of convex boundary
-        prop.convexperim(i,1) =  nnz(regmaxconvperim) / nnz(regmaxperim);
+            % the ratio of convex boundary
+            v = nnz(regmaxconvperim) / nnz(regmaxperim);
+            prop.convexperim(i,1) =  min(prop.convexperim(i,1),v);
+        end;
             
     end;
     

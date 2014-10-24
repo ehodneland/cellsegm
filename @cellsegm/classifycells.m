@@ -220,7 +220,7 @@ if ~isfield(prm,'meanintbck')
     % mean intensity of background (largest region)
     [vol,faser] = bwsize(wat > 0,6);
     [maxvol,ind] = max(vol);
-    bck = faser == ind;    
+    bck = faser == ind;  
     prm.meanintbck = mean(im(bck));
 end;
 
@@ -248,11 +248,13 @@ for i = 1 : nwat
         
         nth = numel(prm.thname);
         dec = NaN(1,nth);
+        val = NaN(1,nth);
         for j = 1 : nth
             str1 = prop.(prm.propname{j})(i);      
             str2 = prm.(prm.thname{j});
             arg = [prm.logic{j} '(' num2str(str1) ',' num2str(str2) ')'];        
             dec(1,j) = eval(arg);
+            val(1,j) = prop.(prm.propname{j})(i);
         end;
         infocells.iscellhere(i,:) = dec;
 
@@ -275,11 +277,16 @@ for i = 1 : nwat
     end;
 
     if iscell == 1
-        res = 'cell';
+        res = 'cell: ';
     else
-        res = 'background';
+        res = 'background: ';
     end;
-    msg = ['  Classifying object ' int2str(i) ' out of ' int2str(nwat) ' as ' res ', ' num2str(dec)];       
+    valstr = makestr(res,25);
+    for j = 1 : numel(val)
+        valstr = [valstr makestr(num2str(val(j)),10)];
+    end
+    valstr = [valstr ' Decisions: ' num2str(dec)];
+    msg = ['  Classifying object ' int2str(i) ' out of ' int2str(nwat) ' as ' valstr];       
     disp(msg);
     
 end;

@@ -68,24 +68,31 @@ for i = 1 : numel(cellv)
         n = maxz-minz+1;
         v = NaN(n,1);
         c = 0;
+        vol = nnz(reghere);
         for j = minz:maxz
             c = c + 1;
             reg = reghere(:,:,j);
             reg = bwkeep(reg,1,8);
-            volreg = nnz(reg);            
+            volreg = nnz(reg);     
+            relvol = volreg/vol;
             a = regionprops(double(reg),name);            
             if ~isempty(a)                
-                v(c,1) = volreg/a.ConvexArea;
+                v(c,1) = relvol * volreg/a.ConvexArea;
             end;
         end;
-        prop.convexarea(i,1) = nanmean(v);
+        prop.convexarea(i,1) = nansum(v);
     end;
     
     
     name = 'convexperim';
     if ismember(name,propname)
         prop.convexperim(i,1) = Inf;
+        n = maxz - minz + 1;
+        v = NaN(n,1);
+        c = 0;
         for j = minz:maxz
+            c = c + 1;
+            
             reg = reghere(:,:,j);
             % in case its disconnected in 2D when taking only a plane
             reg = bwkeep(reg,1,8);
@@ -106,10 +113,11 @@ for i = 1 : numel(cellv)
             regmaxconvperim = imdilate(regmaxconvperim,se) .* regmaxperim;
 
             % the ratio of convex boundary
-            v = nnz(regmaxconvperim) / nnz(regmaxperim);
-            prop.convexperim(i,1) =  min(prop.convexperim(i,1),v);
-        end;
+            %rel = nnz(regmaxperim)/areaperim;
+            v(c,1) = nnz(regmaxconvperim) / nnz(regmaxperim);
             
+        end;
+        prop.convexperim(i,1) =  nanmean(v);
     end;
     
     

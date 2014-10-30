@@ -16,6 +16,12 @@
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
 
+
+% NB NB NB
+% This program is just meant as an example and will not run since the
+% data necessary to run it is not on github (the total Mb limit would e
+% exceeded with these data)
+
 clear all;
 close all;
 

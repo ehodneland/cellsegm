@@ -281,7 +281,9 @@ for i = 1 : nstacks
         end;
            
         prmin.h = prm.h;
-        [cellbw,wat] = cellsegm.segmct(imsegm,prm.minvolfull,prm.maxvolfull,'prm',prmin);        
+        [cellbw,wat,imsegm,info] = cellsegm.segmct(imsegm,prm.minvolfull,prm.maxvolfull,'prm',prmin);        
+        % must have something in these variables for saving
+        minimacell = [];        
         
         % no minimum is created
         minima = [];

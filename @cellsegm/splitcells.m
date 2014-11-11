@@ -98,6 +98,7 @@ distimhr = bwdist(cellbwhr == 0);
 clear prmin;
 prmin.gaussian.stdev = 3;
 prmin.gaussian.diameter = 9;
+prmin.h = h;
 distimhr = cellsegm.smoothim(distimhr,'gaussian','prm',prmin);
 
 % resize back

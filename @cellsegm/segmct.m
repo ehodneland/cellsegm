@@ -256,12 +256,13 @@ disp(msg);
     
 % to return
 imsegm = im;
-prmout = prm;
+info.prm = prm;
 
 [wat,L] = bwlabeln(cellbw);
 msg = ['Number of objects left: ' int2str(L)];
 disp(msg);
-
+show(cellbw,1)
+pause
 
 % [faser,Lout] = bwlabeln(cellbw);
 % msg = ['Removed ' int2str(Lin-Lout) ' regions due to large size'];

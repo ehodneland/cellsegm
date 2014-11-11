@@ -1,4 +1,4 @@
-function [cellbw,wat,imsegm,prmout] = segmct(varargin)
+function [cellbw,wat,imsegm,info] = segmct(varargin)
 % SEGMCT Segmentation of cytosplasmically stained cells and nuclei.
 %
 %   [CELLBW,WAT,IMSEGM,PRMOUT] = SEGMCT(IM,MINV,MAXV) Segmentation of 

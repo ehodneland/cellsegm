@@ -512,6 +512,7 @@ clear D;
 dim = size(im);
 
 % start and stop planes in this stack
+planestart = prm.planestart;
 if isequal(prm.planestart,'automatic')
     val = zeros(dim(3),1);
     for i = 1 : dim(3)

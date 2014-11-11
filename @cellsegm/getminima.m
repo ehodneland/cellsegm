@@ -16,10 +16,10 @@ function [minima,minimacell,prm] = getminima(varargin)
 %   PRM.H (default = [0.5 0.5 1.5])            
 %   Voxelsize 1x3 vector
 % 
-%   PRM.MINVOL  (default = 5)
+%   PRM.MINVOLFULL  (default = 3)
 %   Lower cell volume in 1000 mcm3.
 %
-%   PRM.MAXVOL (default = 50);
+%   PRM.MAXVOLFULL (default = 50);
 %   Upper cell volume in 1000 mcm3.
 % 
 %   PRM.METHOD defines the choice of method for finding markers. There are

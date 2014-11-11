@@ -278,16 +278,31 @@ msg = ['This is SEGMADTH using settings'];
 disp(msg);
 printstructscreen(prm);
 
+vis = 0;
+
 % adaptive thresholding
 % msg = ['Adaptive filtering with filter radius ' num2str(prm.filtrad) ' and threshold ' num2str(prm.adth)];
 % disp(msg);
 cellbw = adaptfiltim(im,prm.filtrad,prm.adth,prm.h);
-
+if vis
+    msg = ['After adaptive thresholding'];
+    disp(msg);
+    show(im,1)
+    show(cellbw,2)
+    pause
+end;
 
 % fill holes
 holes = imfill(cellbw,'holes') - cellbw;
 holes = holes - bwareaopen(holes,prm.minvolvox,conn);
 cellbw(holes == 1) = 1;
+if vis
+    msg = ['After filling'];
+    disp(msg);
+    show(im,1)
+    show(cellbw,2)
+    pause
+end;
 
 
 % erode and open to disconnect
@@ -295,6 +310,14 @@ load ball2;se = getball(ball,2,1);
 cellbw = imopen(cellbw,se);
 load ball1;se = getball(ball,1,1);
 cellbw = imerode(cellbw,se);
+if vis
+    msg = ['Final'];
+    disp(msg);
+    show(im,1)
+    show(cellbw,2)
+    pause
+end;
+
 
 
 % 
@@ -629,7 +652,7 @@ end;
 v = min(round(prm.minvolvox/200),7);
 if v > 0
     name = ['ball' int2str(v)];load(name);
-    load ball7;se = getball(ball,7,1);
+    load(name);se = getball(ball,v,1);
     cellbw = imopen(cellbw,se);
 end;
 

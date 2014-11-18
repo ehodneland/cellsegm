@@ -262,6 +262,24 @@ for i = 1 : nstacks
         % Segmentation of surface stained cells
         [cellbw,wat,imsegm,minima,minimacell,info] = segmsurfhere(imsegm,imnucl,prm);
 
+        if prm.segmstarti > 1
+            msg = ['Adding lower planes'];
+            disp(msg);
+                
+            % fix the lower planes              
+            cellbw = repeatplane(cellbw,prm.segmstarti);
+            wat = repeatplane(wat,prm.segmstarti);                
+            imsegm = imsegminput;
+            m = zeros(dim(1:3));
+            m(:,:,prm.segmstarti:end) = minima;
+            minima = m;        
+            if ~isempty(minimacell)
+                m = zeros(dim(1:3));
+                m(:,:,prm.segmstarti:end) = minimacell;
+                minimacell = m;
+            end;
+        end;
+
     % segmentation of cytoplasmically stained cells, or nuclei only
     elseif isequal(prm.method,'segmct')
                
@@ -281,33 +299,16 @@ for i = 1 : nstacks
            
         prmin.h = prm.h;
         [cellbw,wat,imsegm,info] = cellsegm.segmct(imsegm,prm.minvolfull,prm.maxvolfull,'prm',prmin);        
-        % must have something in these variables for saving
-        minimacell = [];        
         
         % no minimum is created
         minima = [];
+        minimacell = [];
+        
     else
         error([mfilename ': Wrong option in METHOD']);
     end;
             
     
-    if prm.segmstarti > 1
-        msg = ['Adding lower planes'];
-        disp(msg);
-                
-        % fix the lower planes              
-        cellbw = repeatplane(cellbw,prm.segmstarti);
-        wat = repeatplane(wat,prm.segmstarti);                
-        imsegm = imsegminput;
-        m = zeros(dim(1:3));
-        m(:,:,prm.segmstarti:end) = minima;
-        minima = m;        
-        if ~isempty(minimacell)
-            m = zeros(dim(1:3));
-            m(:,:,prm.segmstarti:end) = minimacell;
-            minimacell = m;
-        end;
-    end;
     
     wat = double(wat);    
   

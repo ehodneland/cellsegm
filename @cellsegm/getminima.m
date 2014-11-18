@@ -79,7 +79,7 @@ function [minima,minimacell,prm] = getminima(varargin)
 msg = ['This is ' upper(mfilename) ' finding minima'];
 disp(msg);
 
-
+vis = 0;
 imsegm = varargin{1};
 minimacell = varargin{2};
 prmin = varargin{3};
@@ -92,8 +92,6 @@ dim = size(imsegm);
 if numel(dim) == 2
     dim = [dim 1];
 end;
-
-vis = 0;
 
 %
 % Minima parameters
@@ -465,7 +463,6 @@ minima(:,:,prm.plane) = minimahere;
 if numel(prm.plane) == 1
     minima = repeatplane(minima,prm.plane,2);
 end;
-
 if vis
     'after remove small'
     showall(imnucl(:,:,prm.plane),minimahere)
@@ -476,7 +473,6 @@ end;
 
 
 function [minima,prm] = automated(im,prm)
-
 
 vis = 0;
 

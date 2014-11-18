@@ -49,12 +49,12 @@ for i = 1 : numel(liffile)
 
 
     % reading pixel size and number of series
-    [folder file ext] = fileparts(liffile{i});
+    [folder file fileformat] = fileparts(liffile{i});
     cdir = pwd;
     if ~isempty(folder)
         cd(folder);
     end;
-    namehere = [file ext];
+    namehere = [file fileformat];
     
     msg = ['Converting ' namehere ' in folder ' folder];
     disp(msg);
@@ -77,12 +77,30 @@ for i = 1 : numel(liffile)
         if isequal(str,-1)
             break;
         end
-        s = strfind(str,'HardwareSetting|ScannerSettingRecord|dblVoxel');
-        if ~isempty(s)
-            c = c + 1;
-            h(c) = str2double(str(s+50:end));
-            
+        if isequal(fileformat,'.lsm')            
+            s = strfind(str,'VoxelSizeX');
+            if ~isempty(s)
+                c = c + 1;
+                h(c) = str2double(str(13:end));                
+            end;
+            s = strfind(str,'VoxelSizeY');
+            if ~isempty(s)
+                c = c + 1;
+                h(c) = str2double(str(13:end));
+            end;
+            s = strfind(str,'VoxelSizeZ');
+            if ~isempty(s)
+                c = c + 1;
+                h(c) = str2double(str(13:end));
+            end;
+        elseif isequal(fileformat,'.lif')
+            s = strfind(str,'HardwareSetting|ScannerSettingRecord|dblVoxel');        
+            if ~isempty(s)
+                c = c + 1;
+                h(c) = str2double(str(s+50:end));           
+            end;
         end;
+        
         
         s = strfind(str,'Series count ');
         if ~isempty(s)

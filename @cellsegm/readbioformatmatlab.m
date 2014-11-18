@@ -82,7 +82,7 @@ for i = 1 : numel(liffile)
         
         % the hashtable
         hasht = data{j,2};
-   
+ 
         h = zeros(1,3);
         a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelY #1');
         h(1) = str2double(a);
@@ -94,6 +94,7 @@ for i = 1 : numel(liffile)
         h = h*1e6;
 %         nch = str2double(get(hasht,'HardwareSetting|ScannerSettingRecord|nChannels #1'));
         
+h
         if sum(isnan(h)) == 3
             warning(['Could not read hashtable from series ' int2str(j)]);
             continue;

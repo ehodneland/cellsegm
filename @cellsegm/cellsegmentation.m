@@ -134,7 +134,6 @@ prm.subtract = 1;
 prm.segmch = 1;
 prm.nucleusch = [];
 prm.method = 'segmsurf';
-prm.h = [0.5 0.5 1.5];
 
 % method for segmentation
 prm.segmsurf.getminima.method = 'automated';

@@ -261,8 +261,7 @@ info.prm = prm;
 [wat,L] = bwlabeln(cellbw);
 msg = ['Number of objects left: ' int2str(L)];
 disp(msg);
-show(cellbw,1)
-pause
+
 
 % [faser,Lout] = bwlabeln(cellbw);
 % msg = ['Removed ' int2str(Lin-Lout) ' regions due to large size'];
@@ -279,31 +278,16 @@ msg = ['This is SEGMADTH using settings'];
 disp(msg);
 printstructscreen(prm);
 
-vis = 0;
-
 % adaptive thresholding
 % msg = ['Adaptive filtering with filter radius ' num2str(prm.filtrad) ' and threshold ' num2str(prm.adth)];
 % disp(msg);
 cellbw = adaptfiltim(im,prm.filtrad,prm.adth,prm.h);
-if vis
-    msg = ['After adaptive thresholding'];
-    disp(msg);
-    show(im,1)
-    show(cellbw,2)
-    pause
-end;
+
 
 % fill holes
 holes = imfill(cellbw,'holes') - cellbw;
 holes = holes - bwareaopen(holes,prm.minvolvox,conn);
 cellbw(holes == 1) = 1;
-if vis
-    msg = ['After filling'];
-    disp(msg);
-    show(im,1)
-    show(cellbw,2)
-    pause
-end;
 
 
 % erode and open to disconnect
@@ -311,14 +295,6 @@ load ball2;se = getball(ball,2,1);
 cellbw = imopen(cellbw,se);
 load ball1;se = getball(ball,1,1);
 cellbw = imerode(cellbw,se);
-if vis
-    msg = ['Final'];
-    disp(msg);
-    show(im,1)
-    show(cellbw,2)
-    pause
-end;
-
 
 
 % 

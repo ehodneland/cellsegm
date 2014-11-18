@@ -168,7 +168,6 @@ prm.mergefragments.int = 1.3;
 % thconv < 1 if decrease in convexity
 prm.mergefragments.conv = 1.0;
 
-
 if maxvolfull < minvolfull
     error([mfilename ': The upper cell volume is lower than the lower, check the input'])
 end;
@@ -262,14 +261,16 @@ end;
     cellsegm.cellsize(minvolfull,maxvolfull,prm.h,prm.just,dim(3));
 
 % give the voxel sizes in thousand, since all programs are tuned for this
-prm.classifycells.minvolfull = minvolfull/1000;
-prm.classifycells.maxvolfull = maxvolfull/1000;
+%prm.classifycells.minvolfull = prm.classifycells.minvolfull;
+%prm.classifycells.maxvolfull = prm.classifycells.maxvolfull;
 prm.getminima.minvolfull = minvolfull/1000;
 prm.getminima.maxvolfull = maxvolfull/1000;
 prm.watminvolfull = minvolfull/1000;
 prm.watmaxvolfull = maxvolfull/1000;
 prm.minvolfull = minvolfull;
 prm.maxvolfull = maxvolfull;
+prm.classifycells.minvolfull = minvolfull/1000;
+prm.classifycells.maxvolfull = maxvolfull/1000;
 
 disp('Using settings:');
 printstructscreen(prm);
@@ -397,7 +398,6 @@ if vis == 1
     show(wat,11)
 end;
 
-
 %
 % Classify cells
 %
@@ -406,6 +406,7 @@ try
 catch
     
 end;
+
 if ~isempty(minimacell)
     [cellbw,info.classifycells] = cellsegm.classifycells(wat,imsegmini,prmin,minimacell);
 else

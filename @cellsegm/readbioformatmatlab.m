@@ -34,7 +34,7 @@ function [] = readbioformatmatlab(varargin)
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
 %
-liffile = varargin{1};
+inputfile = varargin{1};
 format = 'all';
 if nargin == 2
     format = varargin{2};
@@ -44,14 +44,16 @@ if ~ismember(format,{'all','mat'})
     error('Wrong option to READBIOFORMAT');
 end;
 
-if ~iscell(liffile)
-    liffile = {liffile};
+if ~iscell(inputfile)
+    inputfile = {inputfile};
 end;
 
-for i = 1 : numel(liffile)
+for i = 1 : numel(inputfile)
+    % file type
+    [A,B,fileformat] = fileparts(inputfile{i});
 
     % reading pixel size and number of series
-    [folder file ext] = fileparts(liffile{i});
+    [folder file ext] = fileparts(inputfile{i});
     namehere = [file ext];
     
     msg = ['Converting ' namehere ' in folder ' folder];
@@ -59,9 +61,9 @@ for i = 1 : numel(liffile)
     
     % read the data
     try
-        data = bfopen(liffile{i});
+        data = bfopen(inputfile{i});
     catch
-        msg = ['Could not open ' liffile{i}];
+        msg = ['Could not open ' inputfile{i}];
         disp(msg);
     end;
     nseries = size(data,1);
@@ -79,32 +81,35 @@ for i = 1 : numel(liffile)
 %         h(2) = omeMeta.getPixelsPhysicalSizeX(0).getValue(); % in ??m
 %         h(1) = omeMeta.getPixelsPhysicalSizeY(0).getValue(); % in ??m
 %         h(3) = omeMeta.getPixelsPhysicalSizeZ(0).getValue(); % in ??m
+        h = zeros(1,3);        
+        if isequal(fileformat,'.lif')
+            % the hashtable
+            hasht = data{j,2};
+            
+            a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelY #1');
+            h(1) = str2double(a);
+            a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelX #1');
+            h(2) = str2double(a);
+            a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelZ #1');
+            h(3) = str2double(a);
+
+            % in microns
+            h = h*1e6;
+        elseif isequal(fileformat,'.lsm')
+            metadata = data{j,4};
+            a = metadata.getPixelsPhysicalSizeX(0).getValue();
+            h(1) = double(a);
+            a = metadata.getPixelsPhysicalSizeY(0).getValue();
+            h(2) = double(a);
+            a = metadata.getPixelsPhysicalSizeZ(0).getValue();
+            h(3) = double(a);
+        end;
         
-        % the hashtable
-        hasht = data{j,2};
- 
-        h = zeros(1,3);
-        a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelY #1');
-        h(1) = str2double(a);
-        a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelX #1');
-        h(2) = str2double(a);
-        a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelZ #1');
-        h(3) = str2double(a);
-        % in microns
-        h = h*1e6;
-%         nch = str2double(get(hasht,'HardwareSetting|ScannerSettingRecord|nChannels #1'));
         
-h
         if sum(isnan(h)) == 3
             warning(['Could not read hashtable from series ' int2str(j)]);
             continue;
         end;
-        
-        % stage position
-%         get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos x #1')        
-%         pos(1) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos x #1'));
-%         pos(2) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos y #1'));
-%         pos(3) = str2double(get(hasht,'HardwareSetting|FilterSettingRecord|DMI6000 Stage Pos z #1'));
         
         msg = ['Voxel size: ' num2str(h)];
         disp(msg);
@@ -117,6 +122,12 @@ h
             imtif(:,:,k) = double(imhere);
         end;
 
+        key.X.max = metadata.getPixelsSizeX(0).getValue();
+        key.Y.max = metadata.getPixelsSizeY(0).getValue();
+        key.Z.max = metadata.getPixelsSizeZ(0).getValue();
+        key.C.max = metadata.getPixelsSizeC(0).getValue();
+        key.T.max = metadata.getPixelsSizeT(0).getValue();
+        
         str = data{j,1}{1,2};
         key = readstr(str);
 
@@ -145,7 +156,7 @@ h
         % reshape image
         im = zeros([dim(1:2),key.Z.max,key.T.max,key.C.max]);
         for k = 1 : nimages
-            str = data{j,1}{k,2};
+            str = data{j,1}{k,2};           
             key = readstr(str);
             im(:,:,key.Z.current,key.T.current,key.C.current) = imtif(:,:,k);
         end;        
@@ -167,19 +178,27 @@ end;
 function [val] = readstr(str)
 str = [str ';'];
 key = {'C=','Z=','T='};
+key2 = {'C?=','Z?=','T?='};
 for i = 1 : numel(key)
-    keyhere = key{i}(1);
+    keyhere = key{i};
     str2 = str;
     ind = strfind(str,key{i});
     if isempty(ind)
-        val.(keyhere).current = 1;
-        val.(keyhere).max = 1;
+        % in lsm files the '?' can show up, is it a bug??
+        ind = strfind(str,key2{i});
+    end;
+    keyfield = keyhere(1);
+    if isempty(ind)
+        val.(keyfield).current = 1;
+        val.(keyfield).max = 1;
         continue;
     end;
     str2 = str2(ind:end);    
     indslash = strfind(str2,'/');
     indscolon = strfind(str2,';');
-    val.(keyhere).current = str2double(str2(3:indslash-1));
-    val.(keyhere).max = str2double(str2(indslash+1:indscolon-1));               
+    indequal = strfind(str2,'=');
+    val.(keyfield).max = str2double(str2(indslash+1:indscolon-1));
+    val.(keyfield).current = str2double(str2(indequal+1:indslash-1));               
 end;
+
 

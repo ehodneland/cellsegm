@@ -109,7 +109,6 @@ distim = cellsegm.imresize3d(distimhr,dim,'linear');
 % wat = watershed(distim);
 % showall(cellbw,distim,wat,wat > 0)
 
-vis = 0;
 if vis    
     disp('After distance function')
     showall(cellbw,distim)

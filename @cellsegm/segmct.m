@@ -14,13 +14,13 @@ function [cellbw,wat,imsegm,info] = segmct(varargin)
 %   There are several methods available, specified by PRM.METHOD
 %
 %       1. ADAPTIVE THRESHOLDING, PRM.METHOD = 'ADTH'. Parameters to set are 
-%       PRM.ADTHADTH (default = 0.20) and PRM.ADTHFILTRAD (default = 40).
+%       PRM.ADTH.ADTH (default = 0.20) and PRM.ADTH.FILTRAD (default = 40).
 %       NB: This method is robust but slow for 3D data.
 %
-%       2. ITERATIVE THRESHOLDING (default), PRM.METHOD = 'ITTH'. Iterative 
+%       2. ITERATIVE THRESHOLDING (default), PRM.METHOD = 'THRS'. Iterative 
 %       thresholding of the image until the largest region has the
 %       volume of the smallest expected cell volume. This method is suitable
-%       for stained nuclei. Parameters to set are PRM.ITTH.ITTH (default = 0.8) 
+%       for stained nuclei. Parameters to set are PRM.THRS.TH (default = 0.8) 
 %       which is the lowest threshold to allow. Note that the threshold is not 
 %       absolute but a multiple of the threshold arising using GRAYTHRESH with 
 %       no arguments.
@@ -98,7 +98,7 @@ prm.thrs.th = 1.2;
 %
 
 % threshold
-prm.adth.adth = 0.20;
+prm.adth.th = 0.20;
 
 % filter radius in microns
 prm.adth.filtrad = 40;
@@ -281,7 +281,7 @@ printstructscreen(prm);
 % adaptive thresholding
 % msg = ['Adaptive filtering with filter radius ' num2str(prm.filtrad) ' and threshold ' num2str(prm.adth)];
 % disp(msg);
-cellbw = adaptfiltim(im,prm.filtrad,prm.adth,prm.h);
+cellbw = adaptfiltim(im,prm.filtrad,prm.th,prm.h);
 
 
 % fill holes
@@ -296,10 +296,6 @@ cellbw = imopen(cellbw,se);
 load ball1;se = getball(ball,1,1);
 cellbw = imerode(cellbw,se);
 
-
-% 
-% % return
-% [wat,L] = bwlabeln(cellbw);
 
 
 %-----------------------------------------------------------------

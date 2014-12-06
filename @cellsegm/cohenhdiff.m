@@ -49,6 +49,7 @@ prm.gpu = 0;
 % inner iterations of coh diff
 prm.niterinner = 1;
 prm.dim = size(u);
+prm.alphaim = ones(size(u));
 for i = 6:2:nargin
     varhere = varargin{i};
     switch(varhere)
@@ -165,7 +166,6 @@ function [u] = cohdiff2dana(u,filt1,filt2,dt,niter,prm)
 
 h = prm.h;
 kappa = prm.kappa;
-
 % iterate
 for i = 1 : niter
     
@@ -216,10 +216,10 @@ for i = 1 : niter
     d12 = (c2-c1).*s12./(alpha + eps);
     d22 = 1/2*(c1+c2 - (c2-c1).*(s11-s22)./(alpha + eps));    
     
-    % update 
-    updateval = tnldstep2d(u,d11,d12,d22,prm.h);
-    u = u + dt*updateval;
-        
+    for j = 1 : prm.niterinner
+        updateval = tnldstep2d(u,d11,d12,d22,prm.h);
+        u = u + dt*prm.alphaim.*updateval;
+    end;
 end;
 
 %----------------------------------------------------------
@@ -410,7 +410,7 @@ for i = 1 : niter
     % update 
     for j = 1 : prm.niterinner
         update = tnldstep3d(u,D,prm);
-        u = u + dt*update;
+        u = u + dt*prm.alphaim.*update;
     end;
     
     msg = ['Number of iterations: ' int2str(i)];
@@ -518,9 +518,10 @@ for i = 1 : niter
     d22 = r12.^2.*c1+r22.^2.*c2;
 
     % update 
-    update = tnldstep2d(u,d11,d12,d22,prm.h);
-    u = u + dt* update;
-
+    for j = 1 : prm.niterinner
+        update = tnldstep2d(u,d11,d12,d22,prm.h);
+        u = u + dt*prm.alphaim.*update;
+    end;
     
     msg = ['Number of iterations: ' int2str(i)];
     disp(msg);

@@ -298,7 +298,7 @@ if prm.illum
     a = imopen(imsegm,se);
     imsegm = imsegm - a;    
     if isequal(prm.getminima.method,'nucleus')    
-        a = imopen(imsegm,se);
+        a = imopen(imnucl,se);
         imnucl = imnucl - a;        
     end;
     clear a;

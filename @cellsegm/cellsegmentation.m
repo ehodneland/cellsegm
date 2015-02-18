@@ -479,16 +479,16 @@ function [im,imsegm,imnucl,prm] = getim(name,prm,i)
 
 try
 
-    if isequal(prm.format,'mat')
-        D = load(name);
-        
-    elseif isequal(prm.format,'tif')
-        namehere = [name '.tif'];        
-        D.im = imreadmulttif(namehere);
-        D.im = reordermultipletif(D.im,prm.nchannel);
-    else
-        error('Wrong format');
-    end;
+%    if isequal(prm.format,'mat')
+    % Always laod the data in .mat format
+        D = load(name);       
+%     elseif isequal(prm.format,'tif')
+%         namehere = [name '.tif'];        
+%         D.im = imreadmulttif(namehere);
+%         D.im = reordermultipletif(D.im,prm.nchannel);
+%     else
+%         error('Wrong format');
+%     end;
     disp(sprintf('Segmentation of %s using channel %i',name,prm.segmch));
 catch ME1
     disp(sprintf('Unable to load %s',name));

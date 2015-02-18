@@ -74,41 +74,19 @@ for i = 1 : numel(inputfile)
     for j = 1 : nseries
         
         dim = size(data{j,1}{1,1});
-%         omeMeta = data{j, 4};
-%         dim(1) = omeMeta.getPixelsSizeX(0).getValue(); % image width, pixels
-%         dim(2) = omeMeta.getPixelsSizeY(0).getValue(); % image height, pixels
-%         dim(3) = omeMeta.getPixelsSizeZ(0).getValue(); % number of Z slices
-%         h(2) = omeMeta.getPixelsPhysicalSizeX(0).getValue(); % in ??m
-%         h(1) = omeMeta.getPixelsPhysicalSizeY(0).getValue(); % in ??m
-%         h(3) = omeMeta.getPixelsPhysicalSizeZ(0).getValue(); % in ??m
         h = zeros(1,3);        
-        if isequal(fileformat,'.lif')
-            % the hashtable
-            hasht = data{j,2};
-            
-            a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelY #1');
-            h(1) = str2double(a);
-            a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelX #1');
-            h(2) = str2double(a);
-            a = get(hasht,'HardwareSetting|ScannerSettingRecord|dblVoxelZ #1');
-            h(3) = str2double(a);
 
-            % in microns
-            h = h*1e6;
-        elseif isequal(fileformat,'.lsm')
-            metadata = data{j,4};
-            a = metadata.getPixelsPhysicalSizeX(0).getValue();
-            h(1) = double(a);
-            a = metadata.getPixelsPhysicalSizeY(0).getValue();
-            h(2) = double(a);
-            a = metadata.getPixelsPhysicalSizeZ(0).getValue();
-            h(3) = double(a);
-        end;
+        metadata = data{j,4};
+        a = metadata.getPixelsPhysicalSizeX(0).getValue();
+        h(1) = double(a);
+        a = metadata.getPixelsPhysicalSizeY(0).getValue();
+        h(2) = double(a);
+        a = metadata.getPixelsPhysicalSizeZ(0).getValue();
+        h(3) = double(a);
         
         
         if sum(isnan(h)) == 3
-            warning(['Could not read hashtable from series ' int2str(j)]);
-            continue;
+            warning(['Could not read voxel size from series ' int2str(j)]);            
         end;
         
         msg = ['Voxel size: ' num2str(h)];

@@ -450,12 +450,6 @@ if vis
 end;
 
 
-if vis
-    'after open'
-    showall(imnucl(:,:,prm.plane),minimahere)
-end;
-
-
 minima = zeros(dim);
 minima(:,:,prm.plane) = minimahere;
 

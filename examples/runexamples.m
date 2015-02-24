@@ -27,7 +27,7 @@ if isequal(option,'all')
     for i = 1 : 10        
         run(i);
         if i < 10
-            msg = ['Option ' int2str(i) ' done, press any key'];
+            msg = ['Option ' int2str(i) ' done'];
             disp(msg);
 %             pause
         end;

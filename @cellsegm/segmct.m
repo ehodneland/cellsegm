@@ -1,4 +1,4 @@
-function [cellbw,wat,imsegm,info] = segmct(varargin)
+function [cellbw,wat,imsegm,prmout] = segmct(varargin)
 % SEGMCT Segmentation of cytosplasmically stained cells and nuclei.
 %
 %   [CELLBW,WAT,IMSEGM,PRMOUT] = SEGMCT(IM,MINV,MAXV) Segmentation of 
@@ -256,7 +256,7 @@ disp(msg);
     
 % to return
 imsegm = im;
-info.prm = prm;
+prmout = prm;
 
 [wat,L] = bwlabeln(cellbw);
 msg = ['Number of objects left: ' int2str(L)];

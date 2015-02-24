@@ -283,7 +283,7 @@ for i = 1 : nwat
     end;
     valstr = makestr(res,25);
     for j = 1 : numel(val)
-        valstr = [valstr makestr(num2str(val(j)),10)];
+        valstr = [valstr makestr(num2str(val(j)),15)];
     end
     valstr = [valstr ' Decisions: ' num2str(dec)];
     msg = ['  Classifying object ' int2str(i) ' out of ' int2str(nwat) ' as ' valstr];       

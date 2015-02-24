@@ -134,6 +134,7 @@ prm.subtract = 1;
 prm.segmch = 1;
 prm.nucleusch = [];
 prm.method = 'segmsurf';
+prm.hdef = [0.5,0.5,1.5];
 
 % method for segmentation
 prm.segmsurf.getminima.method = 'automated';
@@ -506,6 +507,7 @@ try
 catch
     % use default
     warning('Could not read proper voxel size, check your data');
+    prm.h = prm.hdef;
 end;
 
 clear D;

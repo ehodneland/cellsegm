@@ -522,14 +522,13 @@ thimOld = thim;
 
 
 % iterative closing
-for i = 0 : step : high
+for i = 1 : step : high
     
-    thim = thimOld;
-    if i > 0                
-        name = ['ball' int2str(i)];
-        load(name);se = getball(ball,i,1);
-        thim = imclose(thim,se);
-    end;
+    thim = thimOld;    
+    name = ['ball' int2str(i)];
+    load(name);se = getball(ball,i,1);
+    thim = imclose(thim,se);
+    
 
     % fill each region
     [faser,L] = bwlabeln(thim,conn);  

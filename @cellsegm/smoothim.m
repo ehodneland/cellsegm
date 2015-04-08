@@ -64,7 +64,7 @@ prm.planewise = 1;
 
 % time step
 prm.eed.dt = 0.1;
-prm.ced.dt = 0.1;
+prm.ced.dt = 0.01;
 
 % number of iterations
 prm.ced.maxniter = 100;

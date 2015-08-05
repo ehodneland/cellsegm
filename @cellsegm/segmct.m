@@ -10,7 +10,7 @@ function [cellbw,wat,imsegm,prmout] = segmct(varargin)
 %   [...] = SEGMCT(...,'PRM',PRM) gives an option to
 %   specify a set of parameters.
 %
-%   PRM.METHOD (default = 'ITTH')
+%   PRM.METHOD (default = 'THRS')
 %   There are several methods available, specified by PRM.METHOD
 %
 %       1. ADAPTIVE THRESHOLDING, PRM.METHOD = 'ADTH'. Parameters to set are 

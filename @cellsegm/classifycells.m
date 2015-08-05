@@ -1,7 +1,7 @@
 function [cellbw,infocells] = classifycells(varargin)
-% CLASSIFY Classify cells from user defined thresholds
+% CLASSIFYCELLS Classify cells from user defined thresholds
 %
-%   [CELLBW, INFOCELLS] = CLASSIFY(WAT,IM,PRM) Classify the region in WAT from the image
+%   [CELLBW, INFOCELLS] = CLASSIFYCELLS(WAT,IM,PRM) Classify the region in WAT from the image
 %   IM. PRM is a struct array of settings used in the classification.
 %   CELLBW is the cell image after classification and INFOCELLS contains
 %   information about the classification.
@@ -44,7 +44,7 @@ function [cellbw,infocells] = classifycells(varargin)
 %
 %   2. PRM.METHOD = 'minimacell'
 %   The variable MINIMACELL must be defined as
-%   [CELLBW, INFOCELLS] = CLASSIFY(...,'MINIMACELL',MINIMACELL) 
+%   [CELLBW, INFOCELLS] = CLASSIFYCELLS(...,MINIMACELL) 
 %   Classify the region in WAT from the image im using information in
 %   MINIMACELL for selecting cells. MINIMIACELL must be a binary image with
 %   one white region inside each cell, and otherwise black.
@@ -53,10 +53,10 @@ function [cellbw,infocells] = classifycells(varargin)
 %   Ex:
 %   cprm.minvolfull = 5;
 %   cprm.maxvolfull = 50;
-%   [cellbw,infocell] = classifycells(wat,im,cprm);
+%   [cellbw,infocell] = cellsegm.classifycells(wat,im,cprm);
 %
-%   See also cellsegm.segmct, cellsegm.classifycells, cellsegm.getminima, 
-%   cellsegm.segmsurfwat
+%   See also cellsegm.segmct, cellsegm.getminima, cellsegm.segmsurfwat
+%   
 %   =======================================================================================
 %   Copyright (C) 2013  Erlend Hodneland
 %   Email: erlend.hodneland@biomed.uib.no 
@@ -91,7 +91,6 @@ dim = size(im);
 if numel(dim) == 2
     dim = [dim 1];
 end;
-
 
 %
 % Classification parameters
@@ -136,7 +135,6 @@ prm.maxvolfull = prm.maxvolfull*1000;
 
 % voxel volume
 prm.voxelvol = prod(prm.h);
-
 
 % adjust cell volume
 [prm.minvol,prm.minvolvox,prm.maxvol,prm.maxvolvox] = cellsegm.cellsize(prm.minvolfull,prm.maxvolfull,prm.h,prm.just,dim(3));

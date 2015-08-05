@@ -14,7 +14,7 @@ function [cellbw,wat,imsegm,prmout] = segmct(varargin)
 %   There are several methods available, specified by PRM.METHOD
 %
 %       1. ADAPTIVE THRESHOLDING, PRM.METHOD = 'ADTH'. Parameters to set are 
-%       PRM.ADTH.ADTH (default = 0.20) and PRM.ADTH.FILTRAD (default = 40).
+%       PRM.ADTH.TH (default = 0.20) and PRM.ADTH.FILTRAD (default = 40).
 %       NB: This method is robust but slow for 3D data.
 %
 %       2. ITERATIVE THRESHOLDING (default), PRM.METHOD = 'THRS'. Iterative 

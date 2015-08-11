@@ -77,16 +77,28 @@ for i = 1 : numel(inputfile)
         h = zeros(1,3);        
 
         metadata = data{j,4};
-        a = metadata.getPixelsPhysicalSizeX(0).getValue();
-        h(1) = double(a);
-        a = metadata.getPixelsPhysicalSizeY(0).getValue();
-        h(2) = double(a);
-        a = metadata.getPixelsPhysicalSizeZ(0).getValue();
-        h(3) = double(a);
-        
+        try
+            a = metadata.getPixelsPhysicalSizeX(0).getValue();
+            h(1) = double(a);
+        catch
+            h(1) = nan;
+        end;
+        try
+            a = metadata.getPixelsPhysicalSizeY(0).getValue();
+            h(2) = double(a);
+        catch
+            h(2) = nan;    
+        end;
+        try
+            a = metadata.getPixelsPhysicalSizeZ(0).getValue();
+            h(3) = double(a);
+        catch
+            h(3) = nan;
+        end;
         
         if sum(isnan(h)) == 3
-            warning(['Could not read voxel size from series ' int2str(j)]);            
+            warning(['Could not read voxel size from series ' int2str(j)]);   
+            h = [1,1,1];
         end;
         
         msg = ['Voxel size: ' num2str(h)];
@@ -100,14 +112,23 @@ for i = 1 : numel(inputfile)
             imtif(:,:,k) = double(imhere);
         end;
 
-        key.X.max = metadata.getPixelsSizeX(0).getValue();
-        key.Y.max = metadata.getPixelsSizeY(0).getValue();
-        key.Z.max = metadata.getPixelsSizeZ(0).getValue();
-        key.C.max = metadata.getPixelsSizeC(0).getValue();
-        key.T.max = metadata.getPixelsSizeT(0).getValue();
+        try
+            key.X.max = metadata.getPixelsSizeX(0).getValue();
+            key.Y.max = metadata.getPixelsSizeY(0).getValue();
+            key.Z.max = metadata.getPixelsSizeZ(0).getValue();
+            key.C.max = metadata.getPixelsSizeC(0).getValue();
+            key.T.max = metadata.getPixelsSizeT(0).getValue();
+        catch
+            hashtable = data{j,2};
+            key.X.max = hashtable.get('Global Image height');
+            key.Y.max = hashtable.get('Global Image width');
+            key.Z.max = 1;
+            key.C.max = 1;
+            key.T.max = 1;            
+        end;
         
-        str = data{j,1}{1,2};
-        key = readstr(str);
+%         str = data{j,1}{1,2};
+%         key = readstr(str);
 
         % reorder data into an array
         msg = ['Number of planes: ' int2str(key.Z.max)];
@@ -124,7 +145,7 @@ for i = 1 : numel(inputfile)
         [a,b,c] = mkdir(foldersave);        
 
         % save as tif also
-        if isequal(format,'all')
+        if isequal(format,'all')            
             pathsave = fullfile(foldersave,['stack' int2str(j) '.tif']);
             msg = ['Saving ' pathsave];
             disp(msg);

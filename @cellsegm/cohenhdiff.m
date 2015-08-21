@@ -50,6 +50,7 @@ prm.gpu = 0;
 prm.niterinner = 1;
 prm.dim = size(u);
 prm.alphaim = ones(size(u));
+prm.beta = 0.001;
 for i = 6:2:nargin
     varhere = varargin{i};
     switch(varhere)
@@ -196,7 +197,7 @@ for i = 1 : niter
     el2 = 1/2 * (s11 + s22 + alpha);
 
     % factors in C matrix
-    beta = 0.001;
+    beta = prm.beta;
     kapnum = (el1-el2).^2;
 
     % See "Chapter 3, 3D-Coherence enhancing diffusion filtering for matrix

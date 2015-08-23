@@ -50,6 +50,10 @@ prm.gpu = 0;
 prm.niterinner = 1;
 prm.dim = size(u);
 prm.alphaim = ones(size(u));
+prm.filt1mu = 3;
+prm.filt1sigma = 1;
+prm.filt2mu = 9;
+prm.filt2sigma = 5;
 prm.beta = 0.001;
 for i = 6:2:nargin
     varhere = varargin{i};
@@ -79,8 +83,9 @@ printstructscreen(prm);
 dim = size(u);
 ndim = numel(dim);
 if ndim == 2
-    filt1 = fspecial('gaussian',3,1);
-    filt2 = fspecial('gaussian',9,5);
+    
+    filt1 = fspecial('gaussian',prm.filt1mu,prm.filt1sigma);
+    filt2 = fspecial('gaussian',prm.filt2mu,prm.filt2sigma);
 
     if strcmp(opt,'ana')
         % 2D coherence enhancing analytical diffusion
@@ -93,8 +98,8 @@ if ndim == 2
         error('Wrong option for OPT');
     end;
 elseif ndim == 3    
-    filt1 = gaussian([3 3 3],1);
-    filt2 = gaussian([9 9 5],3);
+    filt1 = gaussian(prm.filt1mu*ones(1,3),prm.filt1sigma);
+    filt2 = gaussian(prm.filt2mu*ones(1,3),prm.filt2sigma);
 
     if strcmp(opt,'ana')
         % 3D coherence enhancing analytical diffusion 

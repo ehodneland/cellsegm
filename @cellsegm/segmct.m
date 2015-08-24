@@ -159,8 +159,9 @@ prm.maxvolfull = maxvolfull;
 % Threshold for splitting the cells. Default: We split for cells above the average
 % cell volume
 if ~isfield(prm,'splitminvolvox')
-    d = (prm.minvolvox + prm.maxvolvox)/4;
-    prm.splitvolvox = prm.minvolvox + d;
+%     d = (prm.minvolvox + prm.maxvolvox)/4;
+%     prm.splitvolvox = prm.minvolvox + d;
+    prm.splitvolvox = prm.minvolvox;
 end;
 % % Plane for splitting: Default: One third of the stack height
 % if ~isfield(prm,'splitplane')
@@ -222,6 +223,7 @@ if isequal(prm.method,'thrs')
 elseif isequal(prm.method,'adth')
     % adpative thresholding
     prmin = prm.adth;
+    
     prmin.h = prm.h;
     prmin.minvolvox = prm.minvolvox;
     prmin.maxvolvox = prm.maxvolvox;    
@@ -281,6 +283,7 @@ printstructscreen(prm);
 % adaptive thresholding
 % msg = ['Adaptive filtering with filter radius ' num2str(prm.filtrad) ' and threshold ' num2str(prm.adth)];
 % disp(msg);
+
 cellbw = adaptfiltim(im,prm.filtrad,prm.th,prm.h);
 
 

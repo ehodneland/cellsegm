@@ -23,8 +23,8 @@ load ../data/nucleistain_3D.mat;
 imsegm = imsegm(150:400,50:300,6);
 
 % smoothing with edge enhancing diffusion
+prm.eed.deltat = 1;
 prm.eed.kappa = 10;
-prm.eed.maxniter = 300;
 imsm = cellsegm.smoothim(imsegm,'eed','prm',prm);
 
 cellsegm.show(imsegm,1);axis off;axis image;title('Raw image');

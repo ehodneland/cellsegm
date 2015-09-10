@@ -1,10 +1,10 @@
 % EDGEENHDIFF Edge enhancing diffusion
 %
-%   EDGEENHDIFF(U,DT,MAXNITER,KAPPA,H) Performing edge enhancing diffusion 
-%   of image U using time step DT, MAXNITER number of iterations, 
+%   EDGEENHDIFF(U,DELTAT,ALPHA,KAPPA,H) Performing edge enhancing diffusion 
+%   of image U using time span DELTADT, regularization strength ALPHA,
 %   conductivity KAPPA, and voxel size H.
 % 
-%   Ex: b = edgeenhdiff(im,0.2,100,10,[1 1 3]);show(im,1);
+%   Ex: nucleistain_smoothing_2D;
 %
 %   Literature:
 %   Algorithms for non-linear diffusion, MATLAB in a literate programming
@@ -33,13 +33,35 @@
 function [u] = edgeenhdiff(varargin)
 
 u = varargin{1};
-prm.dt = varargin{2};
-prm.maxniter = varargin{3};
+prm.deltat = varargin{2};
+prm.alpha = varargin{3};
 prm.kappa = varargin{4};
 prm.h = varargin{5};
 prm.vis = 0;
 prm.visit = 10;
+prm.maxalpha = max(prm.alpha(:));
+prm.dtm = 1e-1;
 
+% Convert into matrices
+if numel(prm.alpha) == 1
+    prm.alpha = ones(size(u))*prm.alpha;
+end;
+if numel(prm.kappa) == 1
+    prm.kappa = ones(size(u))*prm.kappa;
+end;
+
+
+% Find time step and number of iterations according to
+% 1) dt*nitertotal = deltat
+% 2) dt*alphamax < dtm
+prm.dt = prm.dtm;
+prm.niter = prm.deltat/prm.dt;
+prod = prm.dt*prm.maxalpha;
+while prod > prm.dtm
+    prm.dt = prm.dt*0.9;
+    prm.niter = prm.deltat/prm.dt;
+    prod = prm.dt*prm.maxalpha;
+end;
 msg = ['This is ' upper(mfilename) ' using settings'];
 disp(msg);
 printstructscreen(prm);
@@ -48,22 +70,73 @@ printstructscreen(prm);
 % 
 % NB Do not filter the original image!!!
 %
-
 [M N O] = size(u);
 
 % filter image
 if O == 1
     disp('2D edge enhancing diffusion')
-    u = filter2d(u,prm.kappa,prm.dt,prm.maxniter,prm.h,prm);
+    u = filter2d(u,prm);
 elseif O >= 2
     disp('3D edge enhancing diffusion')    
-    u = filter3d(u,prm.kappa,prm.dt,prm.maxniter,prm.h,prm);
+    u = filter3d(u,prm);
 end;
 
 %-------------------------------------------------
 
-function [u] = filter3d(u,kappa,dt,niter,h,prm)
+function [u] = filter2d(u,prm)
 
+h = prm.h;
+kappa = prm.kappa;
+dt = prm.dt;
+niter = prm.niter;
+alpha = prm.alpha;
+
+% iterate
+filt = fspecial('gaussian',3,1);
+for i = 1 : niter
+
+%     [Rx Ry Rz] = derivcentr3(u,h(1),h(2),h(3));
+    [Rx Ry] = gradient(u,h(1),h(2));
+    Rx = imfilter(Rx,filt,'replicate');
+    Ry = imfilter(Ry,filt,'replicate');
+    
+    % for diffusion tensor
+    Rw2 = Rx.^2 + Ry.^2;
+    Rw = sqrt(Rw2);
+
+    c2 = exp( - (Rw ./ kappa).^2 );
+    c1 = 1/5 * c2;
+    a = (c1 .* Rx.^2 + c2 .* Ry.^2) ./ (Rw2+eps);
+    b = (c2-c1) .* Rx .* Ry ./ (Rw2+eps);
+    c = (c1 .* Ry.^2 + c2 .* Rx.^2) ./ (Rw2+eps);
+
+    % update
+    u = u + dt * alpha.*tnldstep(u, a, b, c );
+
+    % show?
+    if prm.vis == 1 && round(niter/prm.visit) == niter/prm.visit
+        figure(1);
+        subplot(1,2,1);imagesc(imini);colormap(gray);title('Original image')
+        subplot(1,2,2);imagesc(u);colormap(gray);title('Edge enhanced image')
+    end
+end
+
+
+if prm.vis == 1
+    figure(1);
+    subplot(1,2,1);imagesc(imini);colormap(gray);title('Original image')
+    subplot(1,2,2);imagesc(u);colormap(gray);title('Edge enhanced image')
+end
+
+%----------------------------------------------------
+
+function [u] = filter3d(u,prm)
+
+h = prm.h;
+kappa = prm.kappa;
+dt = prm.dt;
+niter = prm.niter;
+alpha = prm.alpha;
 
 filt = gaussian(3,1,1);
 for i = 1 : niter
@@ -80,8 +153,8 @@ for i = 1 : niter
     Rw = sqrt(Rw2);
 
     % diffusion coefficients
-    c3 = exp( - (Rw / kappa).^2 );
-    c2 = exp( - (Rw / kappa).^2 );    
+    c3 = exp( - (Rw ./ kappa).^2 );
+    c2 = exp( - (Rw ./ kappa).^2 );    
 %     c3 = 1/5 * c2;
     c1 = 1/5 * c3;
 
@@ -136,7 +209,7 @@ for i = 1 : niter
     D.d33 = c1.*r13.^2+c2.*r23.^2+c3.*r33.^2;
 
     % update
-    u = u + dt * tnldstep3d(u,D,prm);
+    u = u + dt * alpha.*tnldstep3d(u,D,prm);
 
     % show?
     if prm.vis == 1 && round(niter/prm.visit) == niter/prm.visit
@@ -207,41 +280,3 @@ r = ...
 
 %----------------------------------------------------
 
-function [u] = filter2d(u,kappa,dt,niter,h,prm)
-
-
-% iterate
-filt = fspecial('gaussian',3,1);
-for i = 1 : niter
-
-%     [Rx Ry Rz] = derivcentr3(u,h(1),h(2),h(3));
-    [Rx Ry] = gradient(u,h(1),h(2));
-    Rx = imfilter(Rx,filt,'replicate');
-    Ry = imfilter(Ry,filt,'replicate');
-    
-    % for diffusion tensor
-    Rw2 = Rx.^2 + Ry.^2;
-    Rw = sqrt(Rw2);
-    c2 = exp( - (Rw / kappa).^2 );
-    c1 = 1/5 * c2;
-    a = (c1 .* Rx.^2 + c2 .* Ry.^2) ./ (Rw2+eps);
-    b = (c2-c1) .* Rx .* Ry ./ (Rw2+eps);
-    c = (c1 .* Ry.^2 + c2 .* Rx.^2) ./ (Rw2+eps);
-
-    % update
-    u = u + dt * tnldstep(u, a, b, c );
-
-    % show?
-    if prm.vis == 1 && round(niter/prm.visit) == niter/prm.visit
-        figure(1);
-        subplot(1,2,1);imagesc(imini);colormap(gray);title('Original image')
-        subplot(1,2,2);imagesc(u);colormap(gray);title('Edge enhanced image')
-    end
-end
-
-
-if prm.vis == 1
-    figure(1);
-    subplot(1,2,1);imagesc(imini);colormap(gray);title('Original image')
-    subplot(1,2,2);imagesc(u);colormap(gray);title('Edge enhanced image')
-end

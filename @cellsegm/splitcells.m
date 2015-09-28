@@ -149,6 +149,10 @@ end;
 % if there are artifacts from lines
 load ball1;se = getball(ball,1,1);
 cellbw = imopen(cellbw,se);
+[faser,L] = bwlabeln(cellbw);
+
+msg = ['Number of objects afters splitting: ' int2str(L)];
+disp(msg);
 
 if vis
     disp('Final')

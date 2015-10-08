@@ -25,22 +25,40 @@
 function [g] = gaussian(dim,sigma)
 
 
+h = [1,1,1];
+[x,minx,maxx] = centergrid(dim,h);
 
-dim = round(dim);
-midx = dim(1)/2;
-midy = dim(2)/2;
-midz = dim(3)/2;
+% dim = round(dim);
+% midx = dim(1)/2;
+% midy = dim(2)/2;
+% midz = dim(3)/2;
+% 
+% 
+% [x,y,z] = ndgrid(1:dim(1),1:dim(2),1:dim(3));
+% x = x - midx-0.5;
+% y = y - midy-0.5;
+% z = z - midz-0.5;
 
 
-[x y z] = ndgrid(1:dim(1),1:dim(2),1:dim(3));
-x = x - midx-0.5;
-y = y - midy-0.5;
-z = z - midz-0.5;
-
-if dim(3) == 1
-    g = (1/(2*pi*sigma^2))*exp(-(x.^2 + y.^2)/(2*sigma.^2));
+% mu is zero, we center the distribution
+if dim(1) > 1 && dim(2) == 1
+    n = 2*pi*sigma^2;
+    n = sqrt(n);
+    g = (1/n)*exp(-(1/2)*(x{1}.^2)/(sigma^2));
+elseif dim(3) == 1
+    sigma = diag(sigma);
+    detsigma = det(sigma);
+    sigmainv = inv(sigma);
+    n = detsigma*(2*pi)^2;
+    g = (1/n)*exp(-(1/2)*(sigmainv(1,1)*x{1}.^2 + sigmainv(2,2)*x{2}.^2));
 elseif dim(3) > 1
-    g = (1/(2*pi*sigma^2)^(3/2))*exp(-(x.^2 + y.^2 + z.^2)/(2*sigma.^2));
+    sigma = diag(sigma);
+    detsigma = det(sigma);
+    sigmainv = inv(sigma);
+    n = detsigma*(2*pi)^2;
+    g = (1/n)*exp(-(1/2)*(sigmainv(1,1)*x{1}.^2 + sigmainv(2,2)*x{2}.^2 + sigmainv(3,3)*x{3}.^2));
 else
     error('Wrong option for DIMZ')
 end;
+% normalize to 1 due to cut off of the filter, discrete effect!
+g = g/sum(g(:));

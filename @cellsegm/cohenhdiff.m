@@ -1,9 +1,9 @@
 function [u] = cohenhdiff(varargin)
 %   COHENHDIFF Cohenrence enhancing diffusion
 %
-%   FILTIM = COHENHDIFF(U,DT,NITER,KAPPA,H)  performs coherence enhancing diffusion of the
-%   image U using timestep DT and NITER iterations. KAPPA is the concuctivity
-%   parameter. H is the voxel size
+%   FILTIM = COHENHDIFF(U,DELTAT,ALPHA,KAPPA,H)  performs coherence enhancing diffusion of the
+%   image U using time span DELTAT, regularization strength ALPHA. 
+%   KAPPA is the concuctivity parameter. H is the voxel size
 %
 %   FILTIM = COHENHDIFF(...,'OPT',OPT) can specify analytical (OPT = 'ana') or
 %   numerical (OPT = 'num') solution
@@ -11,7 +11,7 @@ function [u] = cohenhdiff(varargin)
 %   FILTIM = COHENHDIFF(...,'INVDIFF',INVDIFF) specifies using inverse
 %   diffusion (1) or not (0)
 %
-%   Ex: filtim = cohenhdiff(im,0.2,100,0.0001,[1,1,1]);
+%   Ex: surfstain_smoothing_2D;
 %
 %   Literature:
 %   Algorithms for non-linear diffusion, MATLAB in a literate programming
@@ -37,24 +37,20 @@ function [u] = cohenhdiff(varargin)
 %   =======================================================================================
 %
 
-
 u = varargin{1};
-prm.dt = varargin{2};
-prm.maxniter = varargin{3};
-prm.kappa = varargin{4};
-prm.h = varargin{5};
 opt = 'ana';
 prm.invdiff = [];
 prm.gpu = 0;
-% inner iterations of coh diff
-prm.niterinner = 1;
 prm.dim = size(u);
-prm.alphaim = ones(size(u));
-prm.filt1mu = 3;
-prm.filt1sigma = 1;
+% prm.filt1mu = 3;
+% prm.filt1sigma = 1;
 prm.filt2mu = 9;
 prm.filt2sigma = 5;
 prm.beta = 0.001;
+% prm.beta = 0.1;
+% prm.dtm = 1e-1;
+prm.dtm = 0.5e-1;
+prm.nitersplit = 10;
 for i = 6:2:nargin
     varhere = varargin{i};
     switch(varhere)
@@ -66,20 +62,58 @@ for i = 6:2:nargin
             prmin = varargin{i+1};
             % merge input
             prm = mergestruct(prm,prmin);
+        case 'D'
+            
         otherwise
             error('Wrong option to COHENHDIFF')
     end;
 end;
-          
+prm.deltat = varargin{2};
+prm.alpha = varargin{3};
+prm.kappa = varargin{4};
+prm.h = varargin{5};          
+prm.filt1mu = ceil(prm.filt2mu/2);
+prm.filt1sigma = ceil(prm.filt2sigma/3);
+
 if ~isempty(prm.invdiff)
     disp('Using inverse diffusion');
 end;
 
+prm.maxalpha = max(prm.alpha(:));
+% Convert into matrices
+if numel(prm.alpha) == 1
+    prm.alpha = ones(size(u))*prm.alpha;
+end;
+if numel(prm.kappa) == 1
+    prm.kappa = ones(size(u))*prm.kappa;
+end;
+
+
+% Find time step and number of iterations according to
+% 1) dt*nitertotal = deltat
+% 2) dt*alphamax < dtm
+prm.dt = prm.dtm;
+prm.nitertotal = prm.deltat/prm.dt;
+prod = prm.dt*prm.maxalpha;
+while prod > prm.dtm || prm.nitertotal < 1
+    prm.dt = prm.dt*0.9;
+    prm.nitertotal = prm.deltat/prm.dt;
+    prod = prm.dt*prm.maxalpha;
+end;
+% Split the iterations into inner and outer iterations to save time
+% nitertotal = maxniter*nitersplit + niterinner(end) and
+% nitertotal = sum(niterinner)
+prm.niter = ceil(prm.nitertotal/prm.nitersplit);
+prm.niterinner = ones(1,prm.niter)*prm.nitersplit;
+prm.niterinner(end) = round(rem(prm.nitertotal,prm.nitersplit));
+if prm.niterinner(end) == 0
+    prm.niterinner = prm.niterinner(1:end-1);
+    prm.niter = prm.niter - 1;
+end;
 msg = ['This is ' upper(mfilename) ' using settings'];
 disp(msg);
 printstructscreen(prm);
 
-    
 dim = size(u);
 ndim = numel(dim);
 if ndim == 2
@@ -87,12 +121,14 @@ if ndim == 2
     filt1 = fspecial('gaussian',prm.filt1mu,prm.filt1sigma);
     filt2 = fspecial('gaussian',prm.filt2mu,prm.filt2sigma);
 
+    whos filt1 filt2
+    pause
     if strcmp(opt,'ana')
         % 2D coherence enhancing analytical diffusion
-        u = cohdiff2dana(u,filt1,filt2,prm.dt,prm.maxniter,prm);
+        u = cohdiff2dana(u,filt1,filt2,prm);
     elseif strcmp(opt,'num')
          % 2D coherence enhancing numerical diffusion
-        u = cohdiff2dnum(u,filt1,filt2,prm.dt,prm.maxniter,prm);
+        u = cohdiff2dnum(u,filt1,filt2,prm);
         return
     else
         error('Wrong option for OPT');
@@ -108,7 +144,7 @@ elseif ndim == 3
 %         u = cohdiff3dana(u,filt1,filt2,dt,niter,prm);    
     elseif strcmp(opt,'num')
         % 3D coherence enhancing numerical diffusion 
-        u = cohdiff3dnumcell(u,filt1,filt2,prm.dt,prm.maxniter,prm);    
+        u = cohdiff3dnumcell(u,filt1,filt2,prm);
     else
         error('Wrong option for OPT');
     end;
@@ -168,15 +204,21 @@ return;
 
 %----------------------------------------------------------
 
-function [u] = cohdiff2dana(u,filt1,filt2,dt,niter,prm)
+function [u] = cohdiff2dana(u,filt1,filt2,prm)
 
 h = prm.h;
 kappa = prm.kappa;
-% iterate
+dt = prm.dt;
+niter = prm.niter;
+niterinner = prm.niterinner;
+beta = prm.beta;
+
+maxu = max(u(:));
+
 for i = 1 : niter
     
 
-    usm = imfilter(u,filt1,'replicate');
+     usm = imfilter(u,filt1,'replicate');
 
     % derivative
     [Rx,Ry,Rz] = derivcentr3(usm,h(1),h(2),h(3));
@@ -185,7 +227,7 @@ for i = 1 : niter
 %     Rx = gd( u, obsscale, 1, 0 );
 %     Ry = gd( u, obsscale, 0, 1 );
     
-    % the elements in the structure tensor
+%     % the elements in the structure tensor
 %     s11 = gd( Rx.^2,  intscale, 0, 0 );    
 %     s12 = gd( Rx.*Ry, intscale, 0, 0 );    
 %     s22 = gd( Ry.^2,  intscale, 0, 0 );
@@ -194,6 +236,10 @@ for i = 1 : niter
     s12 = imfilter(Rx.*Ry,filt2,'replicate');
     s22 = imfilter(Ry.^2,filt2,'replicate');
 
+%     s11 = Rx.^2;
+%     s12 = Rx.*Ry;
+%     s22 = Ry.^2;
+
     % the +- thing
     alpha = sqrt( (s11-s22).^2 + 4*s12.^2 );
 
@@ -201,17 +247,17 @@ for i = 1 : niter
     el1 = 1/2 * (s11 + s22 - alpha);
     el2 = 1/2 * (s11 + s22 + alpha);
 
-    % factors in C matrix
-    beta = prm.beta;
+    % factors in C matrix    
     kapnum = (el1-el2).^2;
 
     % See "Chapter 3, 3D-Coherence enhancing diffusion filtering for matrix
     % fields" Burgeth, Weickert and "Analytic formulation for 3D diffusion
     % tensor", Platero, Poncela
     %c1 = max(beta, 1-exp( -(el1-el2).^2 / kappa^2));
-    c1 = beta + (1-beta)*exp(-kappa./kapnum);
-    if ~isempty(prm.invdiff)
-        c2 = prm.invdiff;
+    c1 = beta + (1-beta).*exp(-kappa./kapnum);
+    if ~isempty(prm.invdiff)        
+%         c2 = prm.invdiff;
+        c2 = -beta;
     else
         c2 = beta;
     end;
@@ -222,10 +268,13 @@ for i = 1 : niter
     d12 = (c2-c1).*s12./(alpha + eps);
     d22 = 1/2*(c1+c2 - (c2-c1).*(s11-s22)./(alpha + eps));    
     
-    for j = 1 : prm.niterinner
+    for j = 1 : niterinner(i)
         updateval = tnldstep2d(u,d11,d12,d22,prm.h);
-        u = u + dt*prm.alphaim.*updateval;
+        u = u + dt*prm.alpha.*updateval;
+        u(u > maxu) = maxu;
     end;
+
+%     show(u,2)
 end;
 
 %----------------------------------------------------------
@@ -295,21 +344,22 @@ end;
 
 %--------------------------------------------------------         
 
-function [u] = cohdiff3dnumcell(u,filt1,filt2,dt,niter,prm)
+function [u] = cohdiff3dnumcell(u,filt1,filt2,prm)
 
-kappa = prm.kappa;
 h = prm.h;
+kappa = prm.kappa;
+dt = prm.dt;
+niter = prm.niter;
+niterinner = prm.niterinner;
+beta = prm.beta;
 
-dim = size(u);
+maxu = max(u(:));
 % iterate
 for i = 1 : niter
     
     % derivative
     usm = imfilter(u,filt1,'replicate');
     [Rx, Ry, Rz] = derivcentr3(usm,h(1),h(2),h(3));
-    %Rx = imfilter(Rx,filt1,'replicate');
-    %Ry = imfilter(Ry,filt1,'replicate');
-    %Rz = imfilter(Rz,filt1,'replicate');
 
     % construct the structure tensor
     s{1,1} = Rx.^2;
@@ -322,11 +372,7 @@ for i = 1 : niter
     % smooth the structure tensor
     for j = 1 : 3
         for k = 1 : j
-            if prm.gpu                
-                s{j,k} = imfiltergpu(s{j,k},filt2);
-            else
-                s{j,k} = imfilter(s{j,k},filt2,'replicate');
-            end;
+            s{j,k} = imfilter(s{j,k},filt2,'replicate');
         end;
     end;    
     s{1,2} = s{2,1};
@@ -343,13 +389,16 @@ for i = 1 : niter
     e1 = D{1,1};e2 = D{2,2};e3 = D{3,3};   
     clear R D;
 
-    % factors in C matrix   
-    beta = 0.001;
+    % factors in C matrix       
     kapnum12 = (e1-e2).^2;
     kapnum13 = (e1-e3).^2;
     kapnum23 = (e2-e3).^2;
 
-    
+%     show(kapnum12,2)
+%     show(kapnum13,3)
+%     show(kapnum23,4)
+%     pause
+
     % See "Chapter 3, 3D-Coherence enhancing diffusion filtering for matrix
     % fields" Burgeth, Weickert and "Analytic formulation for 3D diffusion
     % tensor", Platero, Poncela
@@ -358,38 +407,11 @@ for i = 1 : niter
     a2 = beta + (1-beta)*exp(-kappa./(kapnum13 + eps));
     a3 = beta + (1-beta)*exp(-kappa./(kapnum23 + eps));
 
-%     show(e1,1)
-%     show(e2,2)
-%     show(e3,3)
-%     pause
-%     show(a1,1)
-%     show(a2,2)
-%     show(a3,3)
-%     pause
-
-% 
-%     z = 15;
-%     p = 15;
-%     e1(15,p,z)
-%     e2(15,p,z)
-%     e3(15,p,z)
-%     [r11(15,p,z) r21(15,p,z) r31(15,p,z)]'
-%     [r12(15,p,z) r22(15,p,z) r32(15,p,z)]'
-%     [r13(15,p,z) r23(15,p,z) r33(15,p,z)]'
-%     pause
-    
-%     show(kapnum12,1)
-%     show(kapnum13,2)
-%     show(kapnum23,3)
-%     pause
 %    a1 = max(beta, 1-exp( -((e1-e3).^2) / kappa^2));
 %    a2 = max(beta, 1-exp( -((e2-e3).^2) / kappa^2));
-    %showall(a1,a2)
     c1 = max(a1,a2);
     c1 = max(a3,c1);
     c2 = c1;
-%     show(c1,1)
-%     pause
     if ~isempty(prm.invdiff)        
         c3 = prm.invdiff;
     else
@@ -414,31 +436,27 @@ for i = 1 : niter
 
     
     % update 
-    for j = 1 : prm.niterinner
+    for j = 1 : niterinner(i)
         update = tnldstep3d(u,D,prm);
-        u = u + dt*prm.alphaim.*update;
+        u = u + dt*prm.alpha.*update;
+        u(u > maxu) = maxu;                
     end;
-    
-    msg = ['Number of iterations: ' int2str(i)];
-    disp(msg);
-        
+            
 end;
 
-    
-if prm.gpu 
-    u = double(u);
-end;
 
 %-----------------------------------------------------------   
 
-function [u] = cohdiff2dnum(u,filt1,filt2,dt,niter,prm)
+function [u] = cohdiff2dnum(u,filt1,filt2,prm)
 
 kappa = prm.kappa;
 h = prm.h;
+dt = prm.dt;
 
 dim = size(u);
+maxu = max(u(:));
 % iterate
-for i = 1 : niter
+for i = 1 : prm.niter
     
     usm = imfilter(u,filt1,'replicate');
    
@@ -451,19 +469,7 @@ for i = 1 : niter
     s11 = imfilter(Rx.^2,filt2,'replicate');
     s21 = imfilter(Rx.*Ry,filt2,'replicate');
     s22 = imfilter(Ry.^2,filt2,'replicate');
-    
-%     S{1,1} = s11;
-%     S{1,2} = s21;
-%     S{2,1} = s21;
-%     S{2,2} = s22;
-%     [R,D] = eigcell(S);
-%     r11 = R{1,1};
-%     r12 = R{1,2};
-%     r21 = R{2,1};
-%     r22 = R{2,2};
-%     e1 = D{1,1};
-%     e2 = D{2,2};
-
+   
 
     r11 = zeros(dim);
     r21 = zeros(dim);
@@ -476,13 +482,6 @@ for i = 1 : niter
             mhere = [s11(j,k) s21(j,k);
                      s21(j,k) s22(j,k)];   
             [v,d] = eig(mhere);
-%                 if j == 15
-%                     if k == 15
-%                         v
-%                         d
-%                         pause
-%                     end
-%                 end
             r11(j,k) = v(1,1);
             r21(j,k) = v(2,1);
             r12(j,k) = v(1,2);
@@ -493,19 +492,9 @@ for i = 1 : niter
         end;
     end;
     
-%     z = 1;
-%     p = 17;
-%     e1(15,p,z)
-%     e2(15,p,z)
-%     [r11(15,p,z) r21(15,p,z)]'
-%     [r12(15,p,z) r22(15,p,z)]'
-%     pause
-%     
     % factors in C matrix   
     beta = 0.001;
     kapnum = (e1-e2).^2;
-%     show(kapnum,1)
-%     pause
     
     % See "Chapter 3, 3D-Coherence enhancing diffusion filtering for matrix
     % fields" Burgeth, Weickert and "Analytic formulation for 3D diffusion
@@ -526,12 +515,10 @@ for i = 1 : niter
     % update 
     for j = 1 : prm.niterinner
         update = tnldstep2d(u,d11,d12,d22,prm.h);
-        u = u + dt*prm.alphaim.*update;
+        u = u + dt*prm.alpha.*update;
+        u(u > maxu) = maxu;
     end;
-    
-    msg = ['Number of iterations: ' int2str(i)];
-    disp(msg);
-        
+            
 end;
 
 

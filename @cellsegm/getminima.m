@@ -79,7 +79,7 @@ function [minima,minimacell,prm] = getminima(varargin)
 msg = ['This is ' upper(mfilename) ' finding minima'];
 disp(msg);
 
-vis = 0;
+
 imsegm = varargin{1};
 minimacell = varargin{2};
 prmin = varargin{3};
@@ -223,11 +223,6 @@ elseif isequal(prm.method,'nucleus')
 
     % add background and cell
     minima = gt(minimabck + minimacell,0);
-
-    if vis
-        'After remove small-final'
-        showall(imhere,minimabck)
-    end;
 
 %         showall(minima,minimabck)
 elseif isequal(prm.method,'automated')
@@ -524,11 +519,12 @@ thimOld = thim;
 % iterative closing
 for i = 1 : step : high
     
-    thim = thimOld;    
+    thim = thimOld;
+                  
     name = ['ball' int2str(i)];
     load(name);se = getball(ball,i,1);
     thim = imclose(thim,se);
-    
+
 
     % fill each region
     [faser,L] = bwlabeln(thim,conn);  

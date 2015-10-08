@@ -33,10 +33,6 @@ prm.filterridges = 0;
 % threshold for nucleus markers
 prm.getminima.nucleus.segmct.thrs.th = 0.70;
 
-% split markers
-prm.getminima.nucleus.segmct.split = 1;
-prm.getminima.nucleus.segmct.splitth = 1;
-
 % edge enhancing diffusion with a suitable threshold
 prm.getminima.nucleus.segmct.smoothim.method = 'eed';
 prm.getminima.nucleus.segmct.smoothim.eed.kappa = 0.05;
@@ -51,7 +47,7 @@ filt = fspecial('gaussian',3,2);
 imsegm = imfilter(imsegm1,filt) - imfilter(imnucl,filt);
 
 [cellbw,wat,imsegmout,minima,minimacell,info] = ...
-    cellsegm.segmsurf(imsegm,5,100,'imnucleus',imnucl,'prm',prm);
+    cellsegm.segmsurf(imsegm,10,100,'imnucleus',imnucl,'prm',prm);
 
 cellsegm.show(imsegm,1);title('Surface stain');axis off;
 cellsegm.show(imnucl,2);title('Nucleus stain');axis off;

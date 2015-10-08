@@ -32,11 +32,11 @@ prm.filterridges = 0;
 prm.illum = 0;
 
 % Lower threshold for nucleus markers
-prm.getminima.nucleus.segmct.thrs.th = 0.5;
+prm.getminima.nucleus.segmct.thrs.th = 0.6;
 
-% split markers
-prm.getminima.nucleus.segmct.split = 1;
-prm.getminima.nucleus.segmct.splitth = 1;
+% % split markers
+% prm.getminima.nucleus.segmct.split = 1;
+% prm.getminima.nucleus.segmct.splitth = 1;
 
 % Subtract the nucleus channel from the surface staining to reduce the
 % cross talk effect. 

@@ -63,12 +63,12 @@ method = varargin{2};
 prm.planewise = 1;
 
 % time step
-prm.eed.dt = 0.1;
-prm.ced.dt = 0.01;
+prm.eed.deltat = 1;
+prm.ced.deltat = 0.01;
 
-% number of iterations
-prm.ced.maxniter = 100;
-prm.eed.maxniter = 100;
+% strength of smoothing
+prm.ced.alpha = 100;
+prm.eed.alpha = 100;
 
 % no gpu needs Jacket!
 prm.gpu = 0;
@@ -127,16 +127,15 @@ if isequal(method,'ced')
     disp(msg);
     if prm.planewise
         for i = 1 : dim(3)
-            imhere = im(:,:,i);
-            im(:,:,i) = cellsegm.cohenhdiff(imhere,prm.ced.dt,prm.ced.maxniter,prm.ced.kappa,prm.h);       
+            imhere = im(:,:,i);            
+            im(:,:,i) = cellsegm.cohenhdiff(imhere,prm.ced.deltat,prm.ced.alpha,prm.ced.kappa,prm.h);       
         end;
     else
         % true 3D
-        im = cellsegm.cohenhdiff(im,prm.ced.dt,prm.ced.maxniter,prm.ced.kappa,prm.h,'opt','num');       
+        im = cellsegm.cohenhdiff(im,prm.ced.deltat,prm.ced.alpha,prm.ced.kappa,prm.h,'opt','num');       
         error('Wrong option to SMPRM.SMOOTHDIM')        
     end;
-    
-    
+        
 elseif isequal(method,'dirced')
     % Directional coherence enhancing diffusion    
     msg = 'Using directional coherence enhancement filtering';
@@ -150,17 +149,16 @@ elseif isequal(method,'dirced')
         % true 3D
          im = cellsegm.dircohenh(im,prm.dirced.diameter,prm.h);
     end;
-
 elseif isequal(method,'eed')
     msg = 'Using edge enhancing diffusion';
     disp(msg);
     if prm.planewise
         for i = 1 : dim(3)
-            im(:,:,i) = cellsegm.edgeenhdiff(im(:,:,i),prm.eed.dt,prm.eed.maxniter,prm.eed.kappa,prm.h); 
+            im(:,:,i) = cellsegm.edgeenhdiff(im(:,:,i),prm.eed.deltat,prm.eed.alpha,prm.eed.kappa,prm.h); 
         end;
     else
         % edge enhancing diffusion
-        im = cellsegm.edgeenhdiff(im,prm.eed.dt,prm.eed.maxniter,prm.eed.kappa,prm.h);
+        im = cellsegm.edgeenhdiff(im,prm.eed.deltat,prm.eed.alpha,prm.eed.kappa,prm.h);
     end;
     
 elseif isequal(method,'gaussian')

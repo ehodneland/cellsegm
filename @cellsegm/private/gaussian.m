@@ -26,7 +26,7 @@ function [g] = gaussian(dim,sigma)
 
 
 h = [1,1,1];
-[x,minx,maxx] = centergrid(dim,h);
+[x,minx,maxx] = cellcenteredgrid(dim,h);
 
 % dim = round(dim);
 % midx = dim(1)/2;

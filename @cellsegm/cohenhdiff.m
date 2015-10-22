@@ -48,7 +48,7 @@ prm.filt2mu = 9;
 prm.filt2sigma = 5;
 prm.beta = 0.001;
 % prm.beta = 0.1;
-% prm.dtm = 1e-1;
+% prm.dtm = 0.5e-1;
 prm.dtm = 0.5e-1;
 prm.nitersplit = 10;
 for i = 6:2:nargin
@@ -121,8 +121,6 @@ if ndim == 2
     filt1 = fspecial('gaussian',prm.filt1mu,prm.filt1sigma);
     filt2 = fspecial('gaussian',prm.filt2mu,prm.filt2sigma);
 
-    whos filt1 filt2
-    pause
     if strcmp(opt,'ana')
         % 2D coherence enhancing analytical diffusion
         u = cohdiff2dana(u,filt1,filt2,prm);
@@ -134,8 +132,8 @@ if ndim == 2
         error('Wrong option for OPT');
     end;
 elseif ndim == 3    
-    filt1 = gaussian(prm.filt1mu*ones(1,3),prm.filt1sigma);
-    filt2 = gaussian(prm.filt2mu*ones(1,3),prm.filt2sigma);
+    filt1 = gaussian(prm.filt1mu*ones(1,3)./prm.h,prm.filt1sigma*ones(1,3)./prm.h);
+    filt2 = gaussian(prm.filt2mu*ones(1,3)./prm.h,prm.filt2sigma*ones(1,3)./prm.h);
 
     if strcmp(opt,'ana')
         % 3D coherence enhancing analytical diffusion 

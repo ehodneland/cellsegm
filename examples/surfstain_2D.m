@@ -29,8 +29,8 @@ prm.smoothim.method = 'dirced';
 prm.filterridges = 1;
 
 % Segmentation
-prm.classifycells.convexarea = 0.5;
-prm.classifycells.convexperim = 0.50;
+prm.classifycells.convexarea = 0.50;
+prm.classifycells.convexperim = 0.45;
 [cellbw,wat,imsegmout,minima,minimacell,info] = ...
     cellsegm.segmsurf(imsegm,20,100,'prm',prm);
 

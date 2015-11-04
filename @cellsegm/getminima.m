@@ -123,7 +123,8 @@ prm.level = 0.30;
 prm.just = 0.9;
 
 % the threshold for the adaptive filter to find the minima(0.01-0.03)
-prm.automated.adth = 0.01;
+prm.automated.adth = 0.005;
+% prm.automated.adth = 0.01;
 % the dimension of adaptive filter
 prm.automated.diameter = 20;
 

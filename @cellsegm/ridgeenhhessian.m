@@ -37,8 +37,8 @@ u = varargin{1};
 prm.h = varargin{2};
 % default values
 % was at 3
-prm.rad = 3;
-prm.radz = 1;
+prm.rad = 3*ones(1,3);
+% prm.radz = 1;
 prm.stdev = 2;
 if nargin > 2
     for i = 3 : 2 : nargin
@@ -54,7 +54,12 @@ if nargin > 2
         end;            
     end;    
 end;
-prm.h = rowvect(prm.h);
+prm.h = (prm.h(:))';
+prm.rad = (prm.rad(:))';
+
+% % Make sure that input variables are not too long 
+% prm.rad = prm.rad(1:ndim);
+% prm.stdev = prm.stdev(1:ndim);
 
 msg = ['This is RIDGENHHESSIAN using settings'];
 disp(msg);
@@ -64,10 +69,10 @@ printstructscreen(prm);
 
 u = scale(u);
 
-dim = [prm.rad prm.rad prm.rad]./prm.h;
-g1 = gaussian(dim,prm.stdev);
-% dim = [7 7 1];
-% g2 = gaussian(dim,3);
+% Size of filter in number of voxels
+% dim = [prm.rad prm.rad prm.rad]./prm.h;
+dimhere = prm.rad./prm.h;
+g1 = gaussian(dimhere,prm.stdev);
 u = imfilter(u,g1,'replicate');
 
 % showall(u)

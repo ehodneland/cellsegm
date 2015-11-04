@@ -68,7 +68,7 @@ prm.ced.deltat = 0.01;
 
 % strength of smoothing
 prm.ced.alpha = 100;
-prm.eed.alpha = 100;
+prm.eed.alpha = 10;
 
 % no gpu needs Jacket!
 prm.gpu = 0;
@@ -81,7 +81,7 @@ prm.eed.kappa = 10;
 prm.dirced.diameter = 13;
 
 % std of filter and diameter
-prm.gaussian.diameter = 5;
+prm.gaussian.diameter = [5,5,3];
 prm.gaussian.stdev = 2;
 
 % voxel size
@@ -170,12 +170,11 @@ elseif isequal(method,'gaussian')
     printstructscreen(prm.gaussian);
     
     if prm.planewise
-        filt = fspecial('gaussian',prm.gaussian.diameter,prm.gaussian.stdev);                
+        filt = fspecial('gaussian',prm.gaussian.diameter(1:2),prm.gaussian.stdev);                
         for i = 1 : dim(3)
             im(:,:,i) = imfilter(im(:,:,i),filt,'replicate');
         end;
-    else
-        % edge enhancing diffusion
+    else        
         diam = prm.gaussian.diameter*ones(1,3)./prm.h(1:3);
         im = smooth3(im,'gaussian',diam);
     end;

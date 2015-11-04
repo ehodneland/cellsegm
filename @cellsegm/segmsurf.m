@@ -143,7 +143,6 @@ end;
 %
 prm.classifycells.method = 'threshold';
 
-
 %
 % Watershed parameters
 %

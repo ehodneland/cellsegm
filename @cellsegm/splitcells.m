@@ -97,7 +97,7 @@ distimhr = bwdist(cellbwhr == 0);
 % some smooothing of the distances
 clear prmin;
 prmin.gaussian.stdev = 3;
-prmin.gaussian.diameter = 9;
+prmin.gaussian.diameter = [9,9];
 prmin.h = h;
 distimhr = cellsegm.smoothim(distimhr,'gaussian','prm',prmin);
 

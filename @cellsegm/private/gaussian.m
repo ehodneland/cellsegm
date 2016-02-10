@@ -1,8 +1,7 @@
 % GAUSSIAN Make a Gaussian filter
 %
-%   GAUSSIAN(DIM,SIGMA) Make a Gaussian filter of dimension DIM. DIM is a
-%   an array
-%   The standard deviation is teh scalar SIGMA. 
+%   GAUSSIAN(DIM,SIGMA) Make a Gaussian filter of dimension DIM. 
+%   The standard deviation is SIGMA. 
 %
 %
 %   =======================================================================================
@@ -40,20 +39,19 @@ h = [1,1,1];
 % y = y - midy-0.5;
 % z = z - midz-0.5;
 
+
 % mu is zero, we center the distribution
 if dim(1) > 1 && dim(2) == 1
     n = 2*pi*sigma^2;
     n = sqrt(n);
     g = (1/n)*exp(-(1/2)*(x{1}.^2)/(sigma^2));
 elseif dim(3) == 1
-    sigma = repmat(sigma,1,2);
     sigma = diag(sigma);
     detsigma = det(sigma);
     sigmainv = inv(sigma);
     n = detsigma*(2*pi)^2;
     g = (1/n)*exp(-(1/2)*(sigmainv(1,1)*x{1}.^2 + sigmainv(2,2)*x{2}.^2));
 elseif dim(3) > 1
-    sigma = repmat(sigma,1,3);
     sigma = diag(sigma);
     detsigma = det(sigma);
     sigmainv = inv(sigma);

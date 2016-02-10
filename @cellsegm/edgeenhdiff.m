@@ -1,3 +1,4 @@
+function [u] = edgeenhdiff(varargin)
 % EDGEENHDIFF Edge enhancing diffusion
 %
 %   EDGEENHDIFF(U,DELTAT,ALPHA,KAPPA,H) Performing edge enhancing diffusion 
@@ -30,7 +31,6 @@
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %   =======================================================================================
 %
-function [u] = edgeenhdiff(varargin)
 
 u = varargin{1};
 prm.deltat = varargin{2};
@@ -106,6 +106,7 @@ for i = 1 : niter
 
     c2 = exp( - (Rw ./ kappa).^2 );
     c1 = 1/5 * c2;
+    % c1 = 1/10 * c2;
     a = (c1 .* Rx.^2 + c2 .* Ry.^2) ./ (Rw2+eps);
     b = (c2-c1) .* Rx .* Ry ./ (Rw2+eps);
     c = (c1 .* Ry.^2 + c2 .* Rx.^2) ./ (Rw2+eps);
@@ -138,7 +139,7 @@ dt = prm.dt;
 niter = prm.niter;
 alpha = prm.alpha;
 
-filt = gaussian(3,1,1);
+filt = gaussian([3,3,1],[2,2,1]);
 for i = 1 : niter
     
 

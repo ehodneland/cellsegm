@@ -39,7 +39,7 @@ prm.h = varargin{2};
 % was at 3
 prm.rad = 3*ones(1,3);
 % prm.radz = 1;
-prm.stdev = 2;
+prm.stdev = 2*ones(1,3);
 if nargin > 2
     for i = 3 : 2 : nargin
         name = varargin{i};

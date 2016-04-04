@@ -117,15 +117,12 @@ if numel(dim) == 2
     dim = [dim 1];
 end;
 
-% if prm.gpu
-%     im = gsingle(im);
-% end;
-
 if isequal(method,'ced')
     % coherence enhancing diffusion
     msg = 'Using coherence enhancing diffusion';
     disp(msg);
-    if prm.planewise
+    prm.planewise
+    if prm.planewise == 1
         for i = 1 : dim(3)
             imhere = im(:,:,i);            
             im(:,:,i) = cellsegm.cohenhdiff(imhere,prm.ced.deltat,prm.ced.alpha,prm.ced.kappa,prm.h);       
@@ -133,7 +130,7 @@ if isequal(method,'ced')
     else
         % true 3D
         im = cellsegm.cohenhdiff(im,prm.ced.deltat,prm.ced.alpha,prm.ced.kappa,prm.h,'opt','num');       
-        error('Wrong option to SMPRM.SMOOTHDIM')        
+        
     end;
         
 elseif isequal(method,'dirced')

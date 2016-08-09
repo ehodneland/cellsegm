@@ -27,17 +27,11 @@ function [g] = gaussian(dim,sigma)
 
 h = [1,1,1];
 [x,minx,maxx] = cellcenteredgrid(dim,h);
-
-% dim = round(dim);
-% midx = dim(1)/2;
-% midy = dim(2)/2;
-% midz = dim(3)/2;
-% 
-% 
-% [x,y,z] = ndgrid(1:dim(1),1:dim(2),1:dim(3));
-% x = x - midx-0.5;
-% y = y - midy-0.5;
-% z = z - midz-0.5;
+% Center the grid around middle of filter
+middim = round(dim/2);
+for i = 1 : numel(x)
+    x{i} = x{i} - middim(i)+h(i)/2;
+end;
 
 
 % mu is zero, we center the distribution

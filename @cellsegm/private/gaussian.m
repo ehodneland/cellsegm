@@ -30,7 +30,7 @@ h = [1,1,1];
 % Center the grid around middle of filter
 middim = dim/2;
 for i = 1 : numel(x)
-    x{i} = x{i} - middim(i)*prm.h(i);
+    x{i} = x{i} - middim(i)*h(i);
 end;
 
 

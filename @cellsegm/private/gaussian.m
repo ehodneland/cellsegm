@@ -28,9 +28,9 @@ function [g] = gaussian(dim,sigma)
 h = [1,1,1];
 [x,minx,maxx] = cellcenteredgrid(dim,h);
 % Center the grid around middle of filter
-middim = round(dim/2);
+middim = dim/2;
 for i = 1 : numel(x)
-    x{i} = x{i} - middim(i)+h(i)/2;
+    x{i} = x{i} - middim(i)*prm.h(i);
 end;
 
 

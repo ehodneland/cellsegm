@@ -121,7 +121,7 @@ if isequal(method,'ced')
     % coherence enhancing diffusion
     msg = 'Using coherence enhancing diffusion';
     disp(msg);
-    prm.planewise
+    
     if prm.planewise == 1
         for i = 1 : dim(3)
             imhere = im(:,:,i);            
